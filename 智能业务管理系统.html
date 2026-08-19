@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="docTitle">智能业务管理系统</title>
+  <link rel="icon" type="image/png" href="LOGO.png" sizes="64x64">
+  <!-- Lucide Icons (SVG sprite via CDN) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+<!-- ============ 欢迎页 ============ -->
+<div id="welcomePage" class="welcome-page">
+  <div class="welcome-bg">
+    <div class="particle" style="--x:8%;--y:15%;--d:8s;--s:5px;--o:.5"></div>
+    <div class="particle" style="--x:22%;--y:62%;--d:12s;--s:7px;--o:.35"></div>
+    <div class="particle" style="--x:38%;--y:32%;--d:9s;--s:4px;--o:.65"></div>
+    <div class="particle" style="--x:54%;--y:78%;--d:11s;--s:6px;--o:.4"></div>
+    <div class="particle" style="--x:68%;--y:18%;--d:7s;--s:8px;--o:.3"></div>
+    <div class="particle" style="--x:82%;--y:52%;--d:10s;--s:5px;--o:.55"></div>
+    <div class="particle" style="--x:91%;--y:82%;--d:13s;--s:4px;--o:.45"></div>
+    <div class="particle" style="--x:14%;--y:88%;--d:8s;--s:6px;--o:.38"></div>
+    <div class="particle" style="--x:62%;--y:46%;--d:14s;--s:5px;--o:.5"></div>
+    <div class="particle" style="--x:33%;--y:8%;--d:9s;--s:9px;--o:.28"></div>
+    <div class="particle" style="--x:48%;--y:58%;--d:6s;--s:4px;--o:.6"></div>
+    <div class="particle" style="--x:76%;--y:28%;--d:11s;--s:3px;--o:.48"></div>
+    <div class="particle" style="--x:5%;--y:42%;--d:15s;--s:6px;--o:.32"></div>
+    <div class="particle" style="--x:58%;--y:20%;--d:10s;--s:4px;--o:.55"></div>
+  </div>
+  <div class="welcome-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="welcome-content">
+    <div class="welcome-logo">
+      <div class="logo-3d-wrap">
+        <div class="logo-ring ring-1"></div>
+        <div class="logo-ring ring-2"></div>
+        <div class="logo-ring ring-3"></div>
+        <div class="logo-glow"></div>
+        <img src="LOGO.png" alt="Logo" class="logo-icon-img" id="welcomeLogo" onerror="this.style.display='none'">
+      </div>
+    </div>
+    <div class="welcome-title">
+      <span class="title-char">ERP</span>
+      <span class="title-char title-gap">智能</span>
+      <span class="title-char">系统</span>
+    </div>
+    <div class="welcome-subtitle">ERP Intelligent System</div>
+    <div class="welcome-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">正在初始化系统...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 登录页 ============ -->
+<div id="loginPage" class="login-page login-style-split hidden">
+  <div class="login-bg">
+    <div class="login-bg-shape shape1"></div>
+    <div class="login-bg-shape shape2"></div>
+    <div class="login-bg-shape shape3"></div>
+  </div>
+  <div class="login-container">
+    <div class="login-left">
+      <div class="login-brand">
+        <div class="brand-icon">
+          <img src="LOGO.png" alt="Logo" class="brand-icon-img" id="loginLogo" onerror="this.style.display='none'">
+        </div>
+        <div>
+          <div class="brand-name" id="loginBrandName">智能业务管理系统</div>
+          <div class="brand-en" id="loginBrandEn">ERP &amp; WMS Intelligent System</div>
+        </div>
+      </div>
+      <div class="login-features">
+        <div class="feature-item">
+          <div class="feature-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div>
+            <div class="feature-title">实时库存管理</div>
+            <div class="feature-desc">精准跟踪每一件商品的动态</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <div>
+            <div class="feature-title">数据可视化</div>
+            <div class="feature-desc">直观展示库存趋势与分析</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <div>
+            <div class="feature-title">预警提醒</div>
+            <div class="feature-desc">库存不足自动告警通知</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <div class="feature-title">报表中心</div>
+            <div class="feature-desc">多维度报表一键生成导出</div>
+          </div>
+        </div>
+      </div>
+      <div class="login-left-footer">
+        <div class="login-stats">
+          <div class="login-stat"><span class="ls-num">99.9%</span><span class="ls-label">系统可用率</span></div>
+          <div class="login-stat-divider"></div>
+          <div class="login-stat"><span class="ls-num">0ms</span><span class="ls-label">本地延迟</span></div>
+          <div class="login-stat-divider"></div>
+          <div class="login-stat"><span class="ls-num">∞</span><span class="ls-label">数据安全</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="login-form-wrap">
+        <div class="login-compact-brand">
+          <div class="compact-brand-icon">
+            <img src="LOGO.png" alt="Logo" class="brand-icon-img" id="loginLogoCompact" onerror="this.style.display='none'">
+          </div>
+          <div class="compact-brand-name" id="loginBrandNameCompact">智能业务管理系统</div>
+          <div class="compact-brand-en" id="loginBrandEnCompact">ERP &amp; WMS Intelligent System</div>
+        </div>
+        <div class="login-form-header">
+          <div class="login-form-title" id="loginFormTitle">欢迎回来</div>
+          <div class="login-form-subtitle" id="loginFormSubtitle">请登录您的账号以继续使用</div>
+        </div>
+        <div class="form-group">
+          <label>账号</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input type="text" id="loginUsername" placeholder="请输入账号">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="loginPassword" placeholder="请输入密码">
+            <span class="toggle-pwd" onclick="togglePwd()">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+        </div>
+        <div class="form-group" id="loginAccountGroup">
+          <label>账套 <span style="font-size:11px;color:var(--text-muted);font-weight:normal">（不同账套数据独立）</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <select id="loginAccountSet" style="flex:1;padding:0 12px;border:none;background:transparent;font-size:14px;color:var(--text);font-family:inherit;cursor:pointer;outline:none">
+              <option value="default">演示账套</option>
+            </select>
+            <button type="button" onclick="loginCreateAccount()" style="padding:4px 10px;border:1.5px solid var(--primary);background:transparent;color:var(--primary);border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;margin-right:8px" title="新建账套">+ 新建</button>
+          </div>
+        </div>
+        <div class="form-options">
+          <label class="remember-me"><input type="checkbox" checked> 记住我</label>
+          <span class="forgot-pwd"></span>
+        </div>
+        <button class="login-btn" onclick="doLogin()">
+          <span>登 录</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <div class="login-tip" id="loginTipWrap">
+          <span id="loginTipText"></span>
+        </div>
+        <div id="loginError" class="login-error hidden">账号或密码错误，请重试</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 主系统 ============ -->
+<div id="mainApp" class="main-app hidden">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo" id="sidebarLogo">
+        <img src="LOGO.png" alt="Logo" class="sidebar-logo-img" onerror="this.style.display='none'">
+      </div>
+      <div class="sidebar-title">
+        <div class="sidebar-name" id="sidebarName">智能业务管理系统</div>
+        <div class="sidebar-version"><span id="sidebarAccountName" style="color:var(--primary);font-weight:600"></span> <span id="sidebarVersion">v2.2.0</span></div>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="折叠菜单">
+        <svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="display:none"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">核心功能</div>
+        <a class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </span>
+          <span class="nav-text">数据看板</span>
+        </a>
+        <a class="nav-item" onclick="showPage('goods')" data-page="goods">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span class="nav-text">商品管理</span>
+          <span class="nav-badge" id="badge-goods"></span>
+        </a>
+        <a class="nav-item" onclick="showPage('warehouse')" data-page="warehouse">
+          <span class="nav-icon" style="color:#0ea5e9">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21V12h6v9"/><path d="M1 21h22"/></svg>
+          </span>
+          <span class="nav-text">仓库管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('inbound')" data-page="inbound">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+          </span>
+          <span class="nav-text">入库管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('outbound')" data-page="outbound">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 17 12 21 8 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+          </span>
+          <span class="nav-text">出库管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('inventory')" data-page="inventory">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </span>
+          <span class="nav-text">库存盘点</span>
+        </a>
+        <a class="nav-item" onclick="showPage('transfer')" data-page="transfer">
+          <span class="nav-icon" style="color:#8b5cf6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </span>
+          <span class="nav-text" style="color:#8b5cf6">仓库调拨</span>
+        </a>
+        <a class="nav-item" onclick="showPage('record')" data-page="record">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </span>
+          <span class="nav-text">出入库明细</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">业务管理</div>
+        <a class="nav-item" onclick="showPage('supplier')" data-page="supplier">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </span>
+          <span class="nav-text">供应商管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('customer')" data-page="customer">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <span class="nav-text">客户管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('report')" data-page="report">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
+          <span class="nav-text">报表中心</span>
+        </a>
+        <a class="nav-item" onclick="showPage('finance')" data-page="finance">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </span>
+          <span class="nav-text">财务管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('hrm')" data-page="hrm">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <span class="nav-text">人力资源</span>
+        </a>
+        <a class="nav-item" onclick="showPage('crm')" data-page="crm">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </span>
+          <span class="nav-text">客户关系</span>
+        </a>
+        <a class="nav-item" onclick="showPage('analytics')" data-page="analytics">
+          <span class="nav-icon" style="color:#6366f1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          </span>
+          <span class="nav-text" style="color:#6366f1">数据分析中心</span>
+        </a>
+        <a class="nav-item" onclick="showPage('salesKpi')" data-page="salesKpi">
+          <span class="nav-icon" style="color:#10b981">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </span>
+          <span class="nav-text" style="color:#10b981">销售KPI</span>
+        </a>
+        <a class="nav-item" onclick="showPage('eam')" data-page="eam">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </span>
+          <span class="nav-text">售后管理</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">销售物流</div>
+        <a class="nav-item" onclick="showPage('invoice')" data-page="invoice">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </span>
+          <span class="nav-text">发票管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('customerPrice')" data-page="customerPrice">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </span>
+          <span class="nav-text">客户价格</span>
+        </a>
+        <a class="nav-item" onclick="showPage('carrier')" data-page="carrier">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </span>
+          <span class="nav-text">承运商管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('transportPlan')" data-page="transportPlan">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          </span>
+          <span class="nav-text">运输计划</span>
+        </a>
+        <a class="nav-item" onclick="showPage('freight')" data-page="freight">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </span>
+          <span class="nav-text">运费管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('tracking')" data-page="tracking">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="nav-text">物流跟踪</span>
+        </a>
+        <a class="nav-item" onclick="showPage('delivery')" data-page="delivery">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </span>
+          <span class="nav-text">配送管理</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">生产制造</div>
+        <a class="nav-item" onclick="showPage('bom')" data-page="bom">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <span class="nav-text">BOM管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('productionPlan')" data-page="productionPlan">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          <span class="nav-text">生产计划</span>
+        </a>
+        <a class="nav-item" onclick="showPage('mes')" data-page="mes">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </span>
+          <span class="nav-text">车间管理</span>
+        </a>
+        <a class="nav-item" onclick="showPage('outsourcing')" data-page="outsourcing">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </span>
+          <span class="nav-text">委外加工</span>
+        </a>
+        <a class="nav-item" onclick="showPage('quality')" data-page="quality">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </span>
+          <span class="nav-text">质量管理</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">系统</div>
+        <a class="nav-item" onclick="showPage('warning')" data-page="warning">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          <span class="nav-text">预警中心</span>
+          <span class="nav-badge red" id="badge-warning"></span>
+        </a>
+        <a class="nav-item" onclick="showPage('audit')" data-page="audit">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </span>
+          <span class="nav-text">审计日志</span>
+        </a>
+        <a class="nav-item" onclick="showPage('settings')" data-page="settings">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="nav-text">系统设置</span>
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info" onclick="openEditMyAvatar()" style="cursor:pointer" title="点击修改头像">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-detail">
+          <div class="user-name" id="currentUserName">管理员</div>
+          <div class="user-role" id="currentUserRole">超级管理员</div>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="退出登录">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 浮动展开按钮（侧边栏折叠时显示） -->
+  <button class="sidebar-expand-btn" onclick="toggleSidebar()" title="展开菜单">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">数据看板</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-time" id="topbarTime"></div>
+        <div class="topbar-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="搜索商品/单号..." id="globalSearch" oninput="globalSearchFn()">
+        </div>
+        <div class="topbar-notif" onclick="showPage('warning')" title="预警中心">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot" id="notifDot"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 多标签页 -->
+    <div class="tab-bar" id="tabBar">
+      <div class="tab-list" id="tabList"></div>
+      <div class="tab-actions">
+        <button class="tab-action-btn" onclick="closeAllTabs()" title="关闭全部">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 页面内容 -->
+    <div class="page-container" id="pageContainer">
+      <!-- 各页面动态渲染 -->
+    </div>
+  </main>
+</div>
+
+<!-- ============ 模态框 ============ -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-header">
+      <span id="modalTitle">标题</span>
+      <button onclick="closeModal()" class="modal-close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ============ 商品图片悬停预览 ============ -->
+<div id="goodsImgPreview" class="goods-img-preview">
+  <img id="goodsImgPreviewImg" src="" alt="">
+  <div id="goodsImgPreviewInfo" class="goods-img-preview-info"></div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pages/print.js"></script>
+<script src="js/pages/scanner.js"></script>
+<script src="js/pages/audit.js"></script>
+<script src="js/pages/dashboard.js"></script>
+<script src="js/pages/goods.js"></script>
+<script src="js/pages/inbound.js"></script>
+<script src="js/pages/outbound.js"></script>
+<script src="js/pages/record.js"></script>
+<script src="js/pages/inventory.js"></script>
+<script src="js/pages/supplier.js"></script>
+<script src="js/pages/customer.js"></script>
+<script src="js/pages/department.js"></script>
+<script src="js/pages/report.js"></script>
+<script src="js/pages/finance.js"></script>
+<script src="js/pages/warning.js"></script>
+<script src="js/pages/settings.js"></script>
+<!-- 新增：销售管理 -->
+<script src="js/pages/invoice.js"></script>
+<script src="js/pages/customerPrice.js"></script>
+<!-- 新增：物流配送 -->
+<script src="js/pages/carrier.js"></script>
+<script src="js/pages/transportPlan.js"></script>
+<script src="js/pages/freight.js"></script>
+<script src="js/pages/tracking.js"></script>
+<script src="js/pages/delivery.js"></script>
+<!-- 新增：生产制造 -->
+<script src="js/pages/bom.js"></script>
+<script src="js/pages/productionPlan.js"></script>
+<script src="js/pages/mes.js"></script>
+<script src="js/pages/outsourcing.js"></script>
+<script src="js/pages/quality.js"></script>
+<!-- 新增：设备资产 -->
+<script src="js/pages/eam.js"></script>
+<!-- 新增：人力资源 -->
+<script src="js/pages/hrm.js"></script>
+<!-- 新增：客户关系 -->
+<script src="js/pages/crm.js"></script>
+<!-- 新增：数据分析中心 -->
+<script src="js/pages/analytics.js"></script>
+<!-- 新增：销售KPI管理 -->
+<script src="js/pages/salesKpi.js"></script>
+<!-- 新增：仓库调拨 -->
+<script src="js/pages/transfer.js"></script>
+<script src="js/pages/warehouse.js"></script>
+</body>
+</html>
