@@ -61,6 +61,21 @@ const settings = {
         ${this.activeTab===k?'background:var(--primary);color:white;box-shadow:0 2px 8px rgba(79,110,247,0.4)':'background:transparent;color:var(--text-muted)'}"
       >${v}</button>`).join('');
     document.getElementById('settingsContent').innerHTML = this.renderTabContent();
+    if (tab === 'system' && DB._syncEnabled) this.refreshDbConfigCurrentType();
+  },
+
+  // 查询后端当前实际使用的数据库类型，回填到"后端数据库类型配置"下拉框，
+  // 避免用户不知道当前到底连的是 sqlite 还是 mysql
+  async refreshDbConfigCurrentType() {
+    try {
+      const res = await fetch(`${DB.getApiBase()}/api/health`);
+      const data = await res.json();
+      const sel = document.getElementById('dbConfigType');
+      if (sel && data.dbType) {
+        sel.value = data.dbType;
+        this.toggleDbConfigFields();
+      }
+    } catch (e) {}
   },
 
   renderTabContent() {
@@ -155,6 +170,94 @@ const settings = {
     DB._syncEnabled = false;
     toast('已断开服务端连接，切换为本地模式', 'info');
     this.switchTab('system');
+  },
+
+  // ==================== 后台一键配置数据库 ====================
+  toggleDbConfigFields() {
+    const type = document.getElementById('dbConfigType').value;
+    const fields = document.getElementById('dbConfigMysqlFields');
+    if (fields) fields.style.display = type === 'mysql' ? 'block' : 'none';
+  },
+
+  _collectDbConfigPayload() {
+    const dbType = document.getElementById('dbConfigType').value;
+    const payload = { dbType };
+    if (dbType === 'mysql') {
+      payload.mysql = {
+        host: document.getElementById('dbConfigHost').value.trim(),
+        port: document.getElementById('dbConfigPort').value.trim(),
+        user: document.getElementById('dbConfigUser').value.trim(),
+        password: document.getElementById('dbConfigPassword').value,
+        database: document.getElementById('dbConfigDatabase').value.trim()
+      };
+    }
+    return payload;
+  },
+
+  async testDbConfig() {
+    const msgEl = document.getElementById('dbConfigMsg');
+    msgEl.classList.remove('hidden', 'success', 'error');
+    msgEl.textContent = '正在测试连接...';
+    try {
+      const res = await fetch(`${DB.getApiBase()}/api/admin/test-db-config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this._collectDbConfigPayload())
+      });
+      const data = await res.json();
+      if (data.ok) {
+        msgEl.classList.add('success');
+        msgEl.textContent = data.version ? `连接成功！MySQL 版本: ${data.version}` : '连接成功！';
+      } else {
+        msgEl.classList.add('error');
+        msgEl.textContent = '连接失败: ' + (data.error || '未知错误');
+      }
+    } catch (e) {
+      msgEl.classList.add('error');
+      msgEl.textContent = '请求失败: ' + e.message;
+    }
+  },
+
+  async applyDbConfig() {
+    const msgEl = document.getElementById('dbConfigMsg');
+    msgEl.classList.remove('hidden', 'success', 'error');
+    msgEl.textContent = '正在保存配置...';
+    try {
+      const res = await fetch(`${DB.getApiBase()}/api/admin/apply-db-config`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this._collectDbConfigPayload())
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        msgEl.classList.add('error');
+        msgEl.textContent = '保存失败: ' + (data.error || '未知错误');
+        return;
+      }
+      msgEl.classList.add('success');
+      msgEl.textContent = '配置已保存，后端正在重启，请稍候...';
+      toast('数据库配置已保存，后端服务重启中', 'success');
+      this._pollBackendRestart();
+    } catch (e) {
+      msgEl.classList.add('error');
+      msgEl.textContent = '请求失败: ' + e.message;
+    }
+  },
+
+  // 后端重启期间端口会短暂不可用，这里轮询健康检查接口直到它重新上线
+  _pollBackendRestart(attempt) {
+    attempt = attempt || 0;
+    if (attempt > 20) { toast('后端重启超时，请手动检查服务是否正常运行', 'warning'); return; }
+    setTimeout(async () => {
+      try {
+        const res = await fetch(`${DB.getApiBase()}/api/health`);
+        const data = await res.json();
+        if (data.ok) {
+          toast(`后端已重新上线，当前数据库类型: ${data.dbType}`, 'success');
+          if (settings.activeTab === 'system') settings.switchTab('system');
+          return;
+        }
+      } catch (e) {}
+      settings._pollBackendRestart(attempt + 1);
+    }, 1000);
   },
 
   // ==================== 登录页风格 ====================
@@ -307,6 +410,41 @@ const settings = {
         ${DB.getApiBase() ? `<button class="btn btn-ghost" onclick="settings.disconnectApiBase()">断开</button>` : ''}
       </div>
     </div>
+    ${DB._syncEnabled ? `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🐬 后端数据库类型配置</div>
+      <div style="padding:10px 14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px;font-size:12px;color:var(--text-muted);margin-bottom:14px">
+        💡 如果这台电脑（或后端所在的电脑）上已经装好了 MySQL，这里可以直接测试连接、一键切换
+        后端使用的数据库类型，不用手动改 <code>server/.env</code> 文件。点击"保存并应用"后后端服务
+        会自动重启生效，大约几秒钟。
+      </div>
+      <div class="form-row cols-2" style="margin-bottom:12px">
+        <div class="form-item">
+          <label>数据库类型</label>
+          <select id="dbConfigType" onchange="settings.toggleDbConfigFields()">
+            <option value="sqlite">SQLite（默认，零配置）</option>
+            <option value="mysql">MySQL（独立数据库）</option>
+          </select>
+        </div>
+      </div>
+      <div id="dbConfigMysqlFields" style="display:none">
+        <div class="form-row cols-2" style="margin-bottom:12px">
+          <div class="form-item"><label>主机地址</label><input id="dbConfigHost" value="localhost" placeholder="localhost"></div>
+          <div class="form-item"><label>端口</label><input id="dbConfigPort" type="number" value="3306" placeholder="3306"></div>
+        </div>
+        <div class="form-row cols-2" style="margin-bottom:12px">
+          <div class="form-item"><label>用户名</label><input id="dbConfigUser" value="root" placeholder="root"></div>
+          <div class="form-item"><label>密码</label><input id="dbConfigPassword" type="password" placeholder="密码"></div>
+        </div>
+        <div class="form-item" style="margin-bottom:12px"><label>数据库名</label><input id="dbConfigDatabase" value="wms_db" placeholder="wms_db"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="settings.testDbConfig()">🔌 测试连接</button>
+        <button class="btn btn-primary" onclick="settings.applyDbConfig()">💾 保存并应用（自动重启）</button>
+      </div>
+      <div id="dbConfigMsg" class="license-activate-msg hidden" style="margin-top:10px"></div>
+    </div>
+    ` : ''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="card">
         <div class="card-title">📊 核心数据统计</div>

@@ -7,7 +7,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const mysql = require('mysql2/promise');
+const { spawn } = require('child_process');
 const db = require('./db');
+const { writeEnvUpdates } = require('./env-config');
 
 const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -125,6 +128,97 @@ app.put('/api/:accountId/:collection', asyncRoute(async (req, res) => {
   if (!Array.isArray(req.body)) return res.status(400).json({ error: 'array_body_required' });
   await db.setCollection(accountId, collection, req.body);
   res.json({ ok: true });
+}));
+
+// ===== 后台一键配置数据库（写 .env + 自动重启后端使配置生效） =====
+// 注意：和其它接口一样没有做身份校验，跟当前项目"局域网内网自用、无登录鉴权"的
+// 整体安全模型一致；如果部署在不受信任的网络里，请自行加一层反向代理鉴权。
+function validateDbConfigInput(body) {
+  const dbType = body.dbType;
+  if (dbType !== 'sqlite' && dbType !== 'mysql') return '数据库类型只能是 sqlite 或 mysql';
+  if (dbType === 'mysql') {
+    const m = body.mysql || {};
+    if (!m.host || typeof m.host !== 'string') return 'MySQL 主机地址不能为空';
+    if (!m.port || isNaN(Number(m.port))) return 'MySQL 端口必须是数字';
+    if (!m.user || typeof m.user !== 'string') return 'MySQL 用户名不能为空';
+    if (!m.database || typeof m.database !== 'string') return 'MySQL 数据库名不能为空';
+  }
+  return null;
+}
+
+async function testMysqlConnection(m) {
+  const conn = await mysql.createConnection({
+    host: m.host, port: Number(m.port), user: m.user, password: m.password || '',
+    connectTimeout: 5000
+  });
+  try {
+    const [rows] = await conn.query('SELECT VERSION() AS v');
+    return { ok: true, version: rows[0].v };
+  } finally {
+    await conn.end();
+  }
+}
+
+app.post('/api/admin/test-db-config', asyncRoute(async (req, res) => {
+  const err = validateDbConfigInput(req.body || {});
+  if (err) return res.status(400).json({ ok: false, error: err });
+  if (req.body.dbType === 'sqlite') return res.json({ ok: true });
+  try {
+    const result = await testMysqlConnection(req.body.mysql);
+    res.json(result);
+  } catch (e) {
+    // 连接失败是正常的用户输入错误场景，不当成服务端异常，200 返回 ok:false 让前端展示具体原因
+    res.json({ ok: false, error: e.code || e.message });
+  }
+}));
+
+app.post('/api/admin/apply-db-config', asyncRoute(async (req, res) => {
+  const err = validateDbConfigInput(req.body || {});
+  if (err) return res.status(400).json({ ok: false, error: err });
+
+  if (req.body.dbType === 'mysql') {
+    // 应用前再测一次连接，避免保存了一个连不上的配置导致重启后服务起不来
+    try {
+      await testMysqlConnection(req.body.mysql);
+    } catch (e) {
+      return res.status(400).json({ ok: false, error: 'MySQL 连接测试失败：' + (e.code || e.message) });
+    }
+  }
+
+  const updates = { DB_TYPE: req.body.dbType };
+  if (req.body.dbType === 'mysql') {
+    const m = req.body.mysql;
+    updates.MYSQL_HOST = m.host;
+    updates.MYSQL_PORT = String(m.port);
+    updates.MYSQL_USER = m.user;
+    updates.MYSQL_PASSWORD = m.password || '';
+    updates.MYSQL_DATABASE = m.database;
+  }
+  writeEnvUpdates(updates);
+
+  res.json({ ok: true, message: '配置已保存，服务即将自动重启以生效...' });
+
+  // 延迟一下，确保上面的 HTTP 响应先真正发出去，再重启进程；
+  // 用同一个 node 可执行文件重新拉起 server.js（stdio 继承，日志还是打在原来的窗口/终端里）。
+  //
+  // 坑：child_process.spawn 默认会把当前进程的 process.env 整个继承给子进程；
+  // 而当前进程早先用 dotenv.config() 加载过旧的 .env，已经把 DB_TYPE/MYSQL_* 这些
+  // 写进了 process.env 里。dotenv 的默认行为是"环境变量已存在就不覆盖"，所以子进程
+  // 再执行 dotenv.config() 读新 .env 时，会因为这些 key 在继承来的 env 里已经有旧值
+  // 而被跳过，实际还是用的旧配置——表现为"重启了但配置没生效"。这里显式把这次改动
+  // 涉及的 key 从 process.env 里删掉，子进程继承到的就是"干净"的环境，dotenv 才能
+  // 真正从新写好的 .env 文件里把新值灌进去。
+  Object.keys(updates).forEach(key => { delete process.env[key]; });
+
+  setTimeout(() => {
+    const child = spawn(process.argv[0], [__filename], {
+      cwd: __dirname,
+      detached: true,
+      stdio: 'inherit'
+    });
+    child.unref();
+    process.exit(0);
+  }, 300);
 }));
 
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));
