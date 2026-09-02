@@ -427,8 +427,74 @@ function activateLicenseFromBlock() {
   }
 }
 
+// ===== 并发在线人数控制（配合正式授权码里的最大并发用户数限制）=====
+// 只有连接了后端数据库服务（多端共享模式）时才能统计"同一账套同时在线人数"，
+// 纯本地单机模式下 DB._syncEnabled 为 false，不做任何限制（技术上也无法判断）。
+const SessionGuard = {
+  _timer: null,
+
+  // 每个浏览器标签页一个 sessionId（同一标签刷新页面沿用同一个，关闭标签后失效）
+  getSessionId() {
+    let id = sessionStorage.getItem('wms_sessionId');
+    if (!id) {
+      id = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+      sessionStorage.setItem('wms_sessionId', id);
+    }
+    return id;
+  },
+
+  // 登录时尝试占用一个并发名额；未连接后端或未设置上限时直接放行
+  async acquire(accountId, maxUsers) {
+    if (!maxUsers || !DB._syncEnabled) return { ok: true };
+    try {
+      const res = await fetch(DB.getApiBase() + '/api/session/acquire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, sessionId: this.getSessionId(), maxUsers })
+      });
+      return await res.json();
+    } catch (e) {
+      // 后端请求异常（比如刚好断网）：按软性限制的原则，不因为网络问题把人挡在外面
+      return { ok: true };
+    }
+  },
+
+  startHeartbeat(accountId) {
+    this.stopHeartbeat();
+    if (!DB._syncEnabled) return;
+    this._timer = setInterval(() => {
+      fetch(DB.getApiBase() + '/api/session/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, sessionId: this.getSessionId() })
+      }).catch(() => {});
+    }, 20000);
+  },
+
+  stopHeartbeat() {
+    if (this._timer) { clearInterval(this._timer); this._timer = null; }
+  },
+
+  release(accountId) {
+    this.stopHeartbeat();
+    if (!DB._syncEnabled) return;
+    try {
+      fetch(DB.getApiBase() + '/api/session/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, sessionId: this.getSessionId() }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) { /* 忽略：释放名额是尽力而为，不影响退出登录本身 */ }
+  }
+};
+
+window.addEventListener('beforeunload', () => {
+  if (currentUser) SessionGuard.release(DB.getCurrentAccount());
+});
+
 // ===== 登录相关 =====
-function checkAutoLogin() {
+async function checkAutoLogin() {
   if (LicenseGate.isBlocked()) {
     showLicenseBlock();
     return;
@@ -436,13 +502,28 @@ function checkAutoLogin() {
   const saved = localStorage.getItem('wms_autologin');
   if (saved) {
     const user = JSON.parse(saved);
+    const licenseStatus = LicenseGate.getStatus();
+    const maxUsers = licenseStatus.mode === 'license' ? licenseStatus.payload.u : null;
+    if (maxUsers && DB.getApiBase()) {
+      await DB.checkSync();
+      const acquireResult = await SessionGuard.acquire(DB.getCurrentAccount(), maxUsers);
+      if (!acquireResult.ok) {
+        // 记住登录但并发名额已满：不强行进入，退回登录页让用户看到提示并手动重试
+        document.getElementById('loginPage').classList.remove('hidden');
+        const loginErrorEl = document.getElementById('loginError');
+        loginErrorEl.textContent = `当前账套并发在线人数已达授权上限（${maxUsers}人），请等待其他用户下线后再试`;
+        loginErrorEl.classList.remove('hidden');
+        return;
+      }
+      SessionGuard.startHeartbeat(DB.getCurrentAccount());
+    }
     loginSuccess(user);
   } else {
     document.getElementById('loginPage').classList.remove('hidden');
   }
 }
 
-function doLogin() {
+async function doLogin() {
   // 防御性二次校验：极端情况下（比如登录页停留跨越了到期日）避免绕过拦截
   if (LicenseGate.isBlocked()) {
     document.getElementById('loginPage').classList.add('hidden');
@@ -463,18 +544,34 @@ function doLogin() {
   }
   const users = DB.get('users');
   const user = users.find(u => u.username === username && u.password === password && u.status === 1);
+  const loginErrorEl = document.getElementById('loginError');
   if (!user) {
     AudioSys.error();
-    document.getElementById('loginError').classList.remove('hidden');
+    loginErrorEl.textContent = '账号或密码错误，请重试';
+    loginErrorEl.classList.remove('hidden');
     document.getElementById('loginPassword').style.borderColor = '#ef4444';
     return;
   }
+  // 正式授权且设置了最大并发在线人数、且配置了后端地址时，登录前先占用一个名额
+  const licenseStatus = LicenseGate.getStatus();
+  const maxUsers = licenseStatus.mode === 'license' ? licenseStatus.payload.u : null;
+  if (maxUsers && DB.getApiBase()) {
+    await DB.checkSync(); // 现测一次后端是否可达，避免用到过期的 _syncEnabled 状态
+    const acquireResult = await SessionGuard.acquire(DB.getCurrentAccount(), maxUsers);
+    if (!acquireResult.ok) {
+      AudioSys.error();
+      loginErrorEl.textContent = `当前账套并发在线人数已达授权上限（${maxUsers}人），请等待其他用户下线后再试`;
+      loginErrorEl.classList.remove('hidden');
+      return;
+    }
+  }
   AudioSys.success();
-  document.getElementById('loginError').classList.add('hidden');
+  loginErrorEl.classList.add('hidden');
   // 记住登录
   const remember = document.querySelector('.remember-me input').checked;
   if (remember) localStorage.setItem('wms_autologin', JSON.stringify({ ...user, _account: DB.getCurrentAccount() }));
   loginSuccess(user);
+  if (maxUsers) SessionGuard.startHeartbeat(DB.getCurrentAccount());
 }
 
 function loginSuccess(user) {
@@ -489,6 +586,7 @@ function loginSuccess(user) {
 }
 
 function logout() {
+  if (currentUser) SessionGuard.release(DB.getCurrentAccount());
   localStorage.removeItem('wms_autologin');
   currentUser = null;
   document.getElementById('mainApp').classList.add('hidden');

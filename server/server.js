@@ -221,6 +221,60 @@ app.post('/api/admin/apply-db-config', asyncRoute(async (req, res) => {
   }, 300);
 }));
 
+// ===== 并发在线人数会话追踪（配合正式授权码里的最大并发用户数限制） =====
+// 只在"连接了本后端"的场景下才有意义——内存里按账套维护一个 sessionId -> 最后心跳时间
+// 的表，服务重启后表清空（相当于所有人重新计数一次），符合本项目"局域网内网自用、
+// 软性限制"的整体安全模型，不追求防绕过。
+const SESSION_TIMEOUT_MS = 60 * 1000; // 60秒没有心跳视为已离线
+const sessionsByAccount = new Map(); // accountId -> Map(sessionId -> lastSeenMs)
+
+function pruneAccountSessions(accountId) {
+  const sessions = sessionsByAccount.get(accountId);
+  if (!sessions) return new Map();
+  const now = Date.now();
+  for (const [sid, lastSeen] of sessions) {
+    if (now - lastSeen > SESSION_TIMEOUT_MS) sessions.delete(sid);
+  }
+  return sessions;
+}
+
+function validSessionBody(body) {
+  return body && validKey(body.accountId) && typeof body.sessionId === 'string' && body.sessionId.length > 0 && body.sessionId.length <= 128;
+}
+
+// 登录时调用：尝试占用一个并发名额。已在线（同一 sessionId 已存在）视为续期，直接放行。
+app.post('/api/session/acquire', (req, res) => {
+  if (!validSessionBody(req.body)) return res.status(400).json({ ok: false, error: 'invalid_body' });
+  const { accountId, sessionId } = req.body;
+  const maxUsers = Number(req.body.maxUsers);
+  let sessions = pruneAccountSessions(accountId);
+  if (!sessions.has(sessionId) && Number.isInteger(maxUsers) && maxUsers > 0 && sessions.size >= maxUsers) {
+    return res.json({ ok: false, count: sessions.size });
+  }
+  if (!sessionsByAccount.has(accountId)) sessionsByAccount.set(accountId, sessions);
+  sessions.set(sessionId, Date.now());
+  res.json({ ok: true, count: sessions.size });
+});
+
+// 登录后定时调用：续期，避免超时被判定离线；服务端重启导致名额表清空时顺便补registered。
+app.post('/api/session/heartbeat', (req, res) => {
+  if (!validSessionBody(req.body)) return res.status(400).json({ ok: false, error: 'invalid_body' });
+  const { accountId, sessionId } = req.body;
+  const sessions = pruneAccountSessions(accountId);
+  if (!sessionsByAccount.has(accountId)) sessionsByAccount.set(accountId, sessions);
+  sessions.set(sessionId, Date.now());
+  res.json({ ok: true });
+});
+
+// 退出登录/关闭页面时调用：主动释放名额（尽力而为，不保证一定送达）。
+app.post('/api/session/release', (req, res) => {
+  if (!validSessionBody(req.body)) return res.status(400).json({ ok: false, error: 'invalid_body' });
+  const { accountId, sessionId } = req.body;
+  const sessions = sessionsByAccount.get(accountId);
+  if (sessions) sessions.delete(sessionId);
+  res.json({ ok: true });
+});
+
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));
 
 app.listen(PORT, () => {
