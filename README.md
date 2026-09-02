@@ -1,8 +1,8 @@
-# 智能业务管理系统 v2.2.0
+# 综合业务管理系统 v3.0.0
 
 > 一体化企业业务管理系统（ERP）—— 覆盖仓储、供应链、生产制造、质量管控、设备、人力资源、销售CRM、财务、物流运输等全业务链条，仓储管理（WMS）只是其中一个子系统。前端零依赖、双击即可运行；也可选配 Node.js 服务端数据库，实现多台电脑共享同一份数据。
 
-![版本](https://img.shields.io/badge/version-2.2.0-blue) ![许可](https://img.shields.io/badge/license-MIT-green)
+![版本](https://img.shields.io/badge/version-3.0.0-blue) ![许可](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ 核心特性
 
@@ -121,7 +121,7 @@ npx http-server -p 8080
 - Express
 - `node:sqlite`（内置模块，无需原生编译依赖，免去 Windows 下 node-gyp/Visual Studio 构建工具链问题）
 
-## 📝 本次版本迭代（v2.2.0）说明
+## 📝 本次版本迭代（v3.0.0）说明
 
 本次迭代对代码库做了一轮全面检索与逻辑验证，修复的问题包括：
 

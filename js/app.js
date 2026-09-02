@@ -190,7 +190,7 @@ const AutoBackupSync = {
         data[k] = JSON.parse(localStorage.getItem('wms_' + k) || '[]');
       });
       data._backupInfo = {
-        version: '2.1.0',
+        version: '3.0.0',
         createdAt: new Date().toISOString(),
         type: 'auto',
         auto: true
@@ -311,8 +311,128 @@ function runWelcome() {
   setTimeout(run, 600);
 }
 
+// ===== 隐藏的授权管理入口 =====
+// 连续点击侧边栏版本号 5 次（2 秒内）打开授权管理面板，不出现在任何菜单里
+let _versionClickCount = 0;
+let _versionClickTimer = null;
+function handleVersionClick() {
+  _versionClickCount++;
+  clearTimeout(_versionClickTimer);
+  _versionClickTimer = setTimeout(() => { _versionClickCount = 0; }, 2000);
+  if (_versionClickCount >= 5) {
+    _versionClickCount = 0;
+    openLicensePanel();
+  }
+}
+
+function openLicensePanel() {
+  const status = LicenseGate.getStatus();
+  let statusClass = 'ok', statusHtml = '';
+  if (status.mode === 'license') {
+    const daysLeft = Math.round((new Date(status.payload.e) - new Date(new Date().toISOString().slice(0,10))) / 86400000);
+    statusClass = status.valid ? (daysLeft <= 7 ? 'warn' : 'ok') : 'danger';
+    statusHtml = `
+      <div style="font-weight:700;margin-bottom:6px">${status.valid ? '✅ 授权有效' : '❌ 授权已过期'}</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+        客户名称：${status.payload.c || '-'}<br>
+        签发日期：${status.payload.i || '-'}<br>
+        到期日期：${status.payload.e}<br>
+        ${status.valid ? `剩余 ${daysLeft} 天` : `已过期 ${-daysLeft} 天`}
+        ${status.payload.n ? `<br>备注：${status.payload.n}` : ''}
+      </div>`;
+  } else {
+    statusClass = status.valid ? (status.trial.daysLeft <= 7 ? 'warn' : 'ok') : 'danger';
+    statusHtml = `
+      <div style="font-weight:700;margin-bottom:6px">${status.valid ? '🕐 试用期内' : '❌ 试用期已结束'}</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+        试用开始：${status.trial.startDate}<br>
+        试用截止：${status.trial.endDate}<br>
+        ${status.valid ? `剩余 ${status.trial.daysLeft} 天` : `已超出 ${-status.trial.daysLeft} 天`}
+        ${status.codeError ? `<br><span style="color:var(--danger)">（曾保存的授权码已损坏：${status.codeError}，已回退为试用期计算）</span>` : ''}
+      </div>`;
+  }
+
+  openModal('🔑 授权管理', `
+    <div class="license-status-card ${statusClass}">${statusHtml}</div>
+    <div style="margin-bottom:16px;padding:10px 14px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-muted)">
+      联系方式 — 微信：<strong>${LicenseGate.CONTACT.wechat}</strong> ｜ 邮箱：<strong>${LicenseGate.CONTACT.email}</strong>
+    </div>
+    <div class="form-item">
+      <label>激活新授权码</label>
+      <textarea id="licPanelInput" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:12.5px;box-sizing:border-box" placeholder="粘贴授权码..."></textarea>
+    </div>
+    <div id="licPanelMsg" class="license-activate-msg hidden"></div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">关闭</button>
+    ${status.mode === 'license' ? `<button class="btn btn-outline" onclick="clearLicenseFromPanel()">清除已保存授权码</button>` : ''}
+    <button class="btn btn-primary" onclick="activateLicenseFromPanel()">激活</button>
+  `);
+}
+
+function activateLicenseFromPanel() {
+  const input = document.getElementById('licPanelInput');
+  const msgEl = document.getElementById('licPanelMsg');
+  const result = LicenseGate.activate(input.value);
+  msgEl.classList.remove('hidden', 'success', 'error');
+  if (result.ok) {
+    msgEl.classList.add('success');
+    msgEl.textContent = `激活成功！有效期至 ${result.payload.e}`;
+    toast('授权码已激活', 'success');
+    setTimeout(() => openLicensePanel(), 800);
+  } else {
+    msgEl.classList.add('error');
+    msgEl.textContent = result.error;
+  }
+}
+
+function clearLicenseFromPanel() {
+  LicenseGate.clear();
+  toast('已清除已保存的授权码，回退为试用期计算', 'info');
+  openLicensePanel();
+}
+
+// ===== 授权拦截 =====
+// 试用期/授权码到期后，用这个页面代替登录页，不让继续进入系统
+function showLicenseBlock() {
+  const status = LicenseGate.getStatus();
+  const titleEl = document.getElementById('licBlockTitle');
+  const descEl = document.getElementById('licBlockDesc');
+  if (status.mode === 'license') {
+    titleEl.textContent = '授权已到期';
+    descEl.textContent = `当前授权码已于 ${status.payload.e} 到期，请联系我们获取新的授权码后继续使用。`;
+  } else {
+    titleEl.textContent = '试用期已结束';
+    descEl.textContent = `90 天免费试用期已于 ${status.trial.endDate} 结束，请联系我们获取正式授权码后继续使用。`;
+  }
+  document.getElementById('licContactWechat').textContent = LicenseGate.CONTACT.wechat;
+  document.getElementById('licContactEmail').textContent = LicenseGate.CONTACT.email;
+  document.getElementById('licenseBlockPage').classList.remove('hidden');
+}
+
+function activateLicenseFromBlock() {
+  const input = document.getElementById('licActivateInput');
+  const msgEl = document.getElementById('licActivateMsg');
+  const result = LicenseGate.activate(input.value);
+  msgEl.classList.remove('hidden', 'success', 'error');
+  if (result.ok) {
+    msgEl.classList.add('success');
+    msgEl.textContent = `激活成功！授权有效期至 ${result.payload.e}，正在进入系统...`;
+    setTimeout(() => {
+      document.getElementById('licenseBlockPage').classList.add('hidden');
+      checkAutoLogin();
+    }, 1000);
+  } else {
+    msgEl.classList.add('error');
+    msgEl.textContent = result.error;
+  }
+}
+
 // ===== 登录相关 =====
 function checkAutoLogin() {
+  if (LicenseGate.isBlocked()) {
+    showLicenseBlock();
+    return;
+  }
   const saved = localStorage.getItem('wms_autologin');
   if (saved) {
     const user = JSON.parse(saved);
@@ -323,6 +443,12 @@ function checkAutoLogin() {
 }
 
 function doLogin() {
+  // 防御性二次校验：极端情况下（比如登录页停留跨越了到期日）避免绕过拦截
+  if (LicenseGate.isBlocked()) {
+    document.getElementById('loginPage').classList.add('hidden');
+    showLicenseBlock();
+    return;
+  }
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value.trim();
   // 切换账套（如果用户选择了不同的账套）
@@ -409,6 +535,24 @@ function initApp() {
 
   // 加载默认页
   showPage('dashboard');
+
+  // 授权/试用期临近到期提醒（登录后检查一次，不打扰正常使用）
+  checkLicenseReminder();
+}
+
+// 授权码或试用期还剩 ≤7 天时提醒一次；已过期的情况在 checkAutoLogin() 里已经被拦截页挡住了，不会走到这里
+function checkLicenseReminder() {
+  const status = LicenseGate.getStatus();
+  let daysLeft;
+  if (status.mode === 'license') {
+    daysLeft = Math.round((new Date(status.payload.e) - new Date(new Date().toISOString().slice(0, 10))) / 86400000);
+  } else {
+    daysLeft = status.trial.daysLeft;
+  }
+  if (daysLeft >= 0 && daysLeft <= 7) {
+    const what = status.mode === 'license' ? '授权' : '试用期';
+    toast(`⏰ ${what}将于 ${daysLeft} 天后到期，请及时联系微信 ${LicenseGate.CONTACT.wechat} 或邮箱 ${LicenseGate.CONTACT.email} 续期`, 'warning');
+  }
 }
 
 // 更新用户头像显示
@@ -1127,8 +1271,8 @@ document.addEventListener('mousemove', function(e) {
 
 // ===== 品牌/登录文字自定义 =====
 function applyBranding() {
-  const sysName = localStorage.getItem('wms_sysName') || '智能业务管理系统';
-  const sysSubtitle = localStorage.getItem('wms_sysSubtitle') || 'ERP & WMS Intelligent System';
+  const sysName = localStorage.getItem('wms_sysName') || '综合业务管理系统';
+  const sysSubtitle = localStorage.getItem('wms_sysSubtitle') || 'Integrated business management system';
   const loginTitle = localStorage.getItem('wms_loginTitle') || '欢迎回来';
   const loginSubtitle = localStorage.getItem('wms_loginSubtitle') || '请登录您的账号以继续使用';
   const loginTip = localStorage.getItem('wms_loginTip') || '';
@@ -1175,7 +1319,7 @@ function applyBranding() {
 
   // 侧边栏版本号
   const sidebarVersion = document.getElementById('sidebarVersion');
-  const sysVersion = localStorage.getItem('wms_sysVersion') || 'v2.1.0';
+  const sysVersion = localStorage.getItem('wms_sysVersion') || 'v3.0.0';
   if (sidebarVersion) sidebarVersion.textContent = sysVersion;
 
   // Logo 设置

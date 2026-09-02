@@ -160,9 +160,13 @@ const DB = {
     // 恢复当前账套
     this._currentAccount = this.getCurrentAccount();
 
-    // 确保账套列表存在
+    // 确保账套列表存在（这是全新安装的标志：第一次在这个浏览器/设备上创建账套列表，
+    // 同时记录试用起始日期，供 LicenseGate 计算90天免费试用期是否到期）
     if (!localStorage.getItem('wms_accounts')) {
       this.saveAccounts([{ id: 'default', name: '演示账套', desc: '内置示例数据，可用于体验系统功能；真实业务数据建议新建账套单独存放', createdAt: '2025-01-01' }]);
+      if (!localStorage.getItem('wms_trialStartDate')) {
+        localStorage.setItem('wms_trialStartDate', new Date().toISOString().slice(0, 10));
+      }
     }
 
     // 迁移旧数据：将 wms_key 格式的数据迁移到 wms_default_key 格式

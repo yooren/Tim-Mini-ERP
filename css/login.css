@@ -1046,3 +1046,145 @@
 }
 
 #welcomePage.login-style-dark .progress-fill::after { background: #e2e8f0; box-shadow: 0 0 10px #e2e8f0; }
+
+/* ===== 授权到期拦截页 ===== */
+.license-block-page {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(150deg, #1a1408 0%, #241c0f 45%, #1f1810 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 8500;
+  animation: fadeIn 0.4s ease;
+}
+
+.license-block-card {
+  width: 440px;
+  max-width: 92%;
+  background: white;
+  border-radius: 20px;
+  padding: 40px 36px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+}
+
+.license-block-icon {
+  font-size: 44px;
+  margin-bottom: 16px;
+}
+
+.license-block-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.license-block-desc {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+
+.license-block-contact {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.license-contact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  color: #78350f;
+}
+
+.license-contact-label {
+  font-weight: 700;
+  color: #92400e;
+}
+
+.license-block-form {
+  text-align: left;
+}
+
+.license-block-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.license-block-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-family: monospace;
+  resize: vertical;
+  background: #f8fafc;
+  color: #0f172a;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.license-block-form textarea:focus {
+  outline: none;
+  border-color: #3b6eff;
+  background: white;
+}
+
+.license-block-form .btn {
+  width: 100%;
+}
+
+.license-activate-msg {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.license-activate-msg.success {
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.25);
+  color: #059669;
+}
+
+.license-activate-msg.error {
+  background: rgba(239,68,68,0.07);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #ef4444;
+}
+
+/* ===== 隐藏的授权管理面板（系统内，非拦截场景） ===== */
+.license-status-card {
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.license-status-card.ok {
+  background: rgba(16,185,129,0.06);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.license-status-card.warn {
+  background: rgba(245,158,11,0.07);
+  border: 1px solid rgba(245,158,11,0.25);
+}
+
+.license-status-card.danger {
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.2);
+}

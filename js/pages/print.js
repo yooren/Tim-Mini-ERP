@@ -32,8 +32,8 @@ const PrintManager = {
     // 读取自定义打印设置
     let ps = {};
     try { ps = JSON.parse(localStorage.getItem('wms_printSettings') || '{}'); } catch(e) {}
-    const companyName = ps.companyName || '智能业务管理系统';
-    const companySub = ps.companySub || ('智能业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v2.2').replace(/^v/, ''));
+    const companyName = ps.companyName || '综合业务管理系统';
+    const companySub = ps.companySub || ('综合业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, ''));
     const fontSize = ps.fontSize || 14;
     const showFooter = ps.showFooter !== false;
     const footerText = ps.footerText || '本单据由系统自动生成';

@@ -349,18 +349,18 @@ const settings = {
         <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
           <div style="font-weight:600;font-size:13px;margin-bottom:10px">系统名称</div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input id="brandSysName" value="${localStorage.getItem('wms_sysName') || '智能业务管理系统'}" placeholder="系统名称" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysName" value="${localStorage.getItem('wms_sysName') || '综合业务管理系统'}" placeholder="系统名称" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
             <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">登录页+侧边栏+浏览器标签</span>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
             <div style="font-weight:600;font-size:13px;margin-bottom:10px">系统版本号</div>
-            <input id="brandSysVersion" value="${localStorage.getItem('wms_sysVersion') || 'v2.2.0'}" placeholder="如 v2.1.0" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysVersion" value="${localStorage.getItem('wms_sysVersion') || 'v3.0.0'}" placeholder="如 v3.0.0" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
           </div>
           <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
             <div style="font-weight:600;font-size:13px;margin-bottom:10px">品牌副标题</div>
-            <input id="brandSysSubtitle" value="${localStorage.getItem('wms_sysSubtitle') || 'ERP & WMS Intelligent System'}" placeholder="登录页品牌副标题" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysSubtitle" value="${localStorage.getItem('wms_sysSubtitle') || 'Integrated business management system'}" placeholder="登录页品牌副标题" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -398,8 +398,8 @@ const settings = {
       <div class="card-title">ℹ️ 系统信息</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         ${[
-          ['系统名称', localStorage.getItem('wms_sysName') || '智能业务管理系统'],
-          ['系统版本', localStorage.getItem('wms_sysVersion') || 'v2.2.0'],
+          ['系统名称', localStorage.getItem('wms_sysName') || '综合业务管理系统'],
+          ['系统版本', localStorage.getItem('wms_sysVersion') || 'v3.0.0'],
           ['当前用户', currentUser.name],
           ['用户角色', getRoleName(currentUser.role)],
           ['浏览器', navigator.userAgent.split('Chrome')[0] ? 'Chrome' : 'Other'],
@@ -538,7 +538,7 @@ const settings = {
 
     // 立即应用
     applyBranding();
-    audit.log('settings', '修改品牌设置', '系统设置', `系统名称: ${sysName}, 版本: ${sysVersion || 'v2.1.0'}`);
+    audit.log('settings', '修改品牌设置', '系统设置', `系统名称: ${sysName}, 版本: ${sysVersion || 'v3.0.0'}`);
     toast('品牌设置已保存并生效！', 'success');
     this.switchTab('system');
   },
@@ -954,7 +954,7 @@ const settings = {
       data[k] = DB.get(k);
     });
     data._backupInfo = {
-      version: '2.1.0',
+      version: '3.0.0',
       createdAt: new Date().toISOString(),
       createdBy: currentUser.username,
       type: 'full',
@@ -975,7 +975,7 @@ const settings = {
       suppliers: DB.get('suppliers'),
       customers: DB.get('customers'),
       _backupInfo: {
-        version: '2.1.0',
+        version: '3.0.0',
         createdAt: new Date().toISOString(),
         createdBy: currentUser.username,
         type: 'goods'
@@ -993,7 +993,7 @@ const settings = {
       outbounds: DB.get('outbounds'),
       inventories: DB.get('inventories'),
       _backupInfo: {
-        version: '2.1.0',
+        version: '3.0.0',
         createdAt: new Date().toISOString(),
         createdBy: currentUser.username,
         type: 'records'
@@ -2032,8 +2032,8 @@ const settings = {
     const raw = localStorage.getItem('wms_printSettings');
     if (raw) { try { return JSON.parse(raw); } catch(e) {} }
     return {
-      companyName: localStorage.getItem('wms_sysName') || '智能业务管理系统',
-      companySub: '智能业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v2.2').replace(/^v/, ''),
+      companyName: localStorage.getItem('wms_sysName') || '综合业务管理系统',
+      companySub: '综合业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, ''),
       showLogo: true,
       logoUrl: 'LOGO.png',
       paperSize: 'A4',

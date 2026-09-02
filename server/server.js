@@ -1,4 +1,4 @@
-// 智能业务管理系统 - 服务端数据库后端
+// 综合业务管理系统 - 服务端数据库后端
 // Node.js + Express + 可选 SQLite（默认，内置 node:sqlite）或 MySQL（DB_TYPE=mysql，见 db-mysql.js）
 // 与前端 js/data.js 的 localStorage 语义一一对应：
 //   DB.get(key)        <-> GET  /api/:accountId/:collection

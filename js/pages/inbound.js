@@ -839,7 +839,7 @@ const inbound = {
       <div class="print-header">
         <div>
           <div class="print-title">${r.type === '退货入库' ? '退 货 入 库 单' : '入 库 单'}</div>
-          <div class="print-sub">智能业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v2.2').replace(/^v/, '')}</div>
+          <div class="print-sub">综合业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, '')}</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>

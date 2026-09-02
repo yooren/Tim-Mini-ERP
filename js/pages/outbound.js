@@ -1138,7 +1138,7 @@ const outbound = {
       .pf{display:flex;justify-content:space-between;margin-top:40px;font-size:13px;color:#666}.pf div{text-align:center;min-width:150px}.pf .sl{border-bottom:1px solid #ccc;margin-top:40px;width:120px;display:inline-block}
       @media print{body{padding:20px}}
     </style></head><body>
-      <div class="ph"><div><div class="pt">${isReturn ? '退 货 出 库 单' : '出 库 单'}</div><div class="ps">智能业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v2.2').replace(/^v/, '')}</div></div>
+      <div class="ph"><div><div class="pt">${isReturn ? '退 货 出 库 单' : '出 库 单'}</div><div class="ps">综合业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, '')}</div></div>
         <div style="text-align:right;font-size:13px"><div>单号: <strong>${r.code}</strong></div><div>日期: ${r.date}</div><div>类型: ${isReturn ? '退货出库' : '销售出库'}</div><div>状态: ${r.status||'已完成'}</div></div></div>
       <div class="pm">
         <div><span class="l">${isReturn ? '退回供应商：' : '客户：'}</span>${r.customerName}</div><div><span class="l">操作员：</span>${r.operator}</div>
