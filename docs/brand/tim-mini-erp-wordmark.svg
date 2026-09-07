@@ -1,0 +1,23 @@
+<svg viewBox="0 0 720 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tim Mini ERP by Tim Ren Studio 工作室">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b6eff"/>
+      <stop offset="100%" stop-color="#5b4eff"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- icon badge -->
+  <rect x="4" y="4" width="152" height="152" rx="34" fill="url(#bg)"/>
+  <rect x="4" y="4" width="152" height="152" rx="34" fill="url(#sheen)"/>
+  <rect x="42" y="45" width="76" height="19" rx="9.5" fill="#ffffff"/>
+  <rect x="70.5" y="45" width="19" height="73" rx="9.5" fill="#ffffff"/>
+  <circle cx="110" cy="115" r="7" fill="#ffd166"/>
+
+  <!-- wordmark -->
+  <text x="182" y="98" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="800" fill="#0f172a">Tim Mini ERP</text>
+  <text x="184" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#64748b">做更顺手的软件与工具 · Tim Ren Studio 工作室出品</text>
+</svg>

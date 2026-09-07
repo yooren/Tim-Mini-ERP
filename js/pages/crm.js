@@ -105,8 +105,9 @@ const crm = {
   saveClient() {
     const name=document.getElementById('cName').value.trim();
     if(!name){toast('请输入客户名称','error');return;}
-    DB.add('crmClients',{code:DB.genCode('KH'),name,type:document.getElementById('cType').value,contact:document.getElementById('cContact').value.trim(),phone:document.getElementById('cPhone').value.trim(),email:document.getElementById('cEmail').value.trim(),industry:document.getElementById('cIndustry').value.trim(),level:document.getElementById('cLevel').value,source:document.getElementById('cSource').value.trim(),owner:document.getElementById('cOwner').value.trim(),address:document.getElementById('cAddress').value.trim(),note:document.getElementById('cNote').value.trim(),status:'正常',totalOrders:0,totalAmount:0,createdAt:new Date().toISOString()});
-    audit.log('CRM','新增客户',DB.genCode('KH'),`客户名称: ${name}`);
+    const code = DB.genCode('KH');
+    DB.add('crmClients',{code,name,type:document.getElementById('cType').value,contact:document.getElementById('cContact').value.trim(),phone:document.getElementById('cPhone').value.trim(),email:document.getElementById('cEmail').value.trim(),industry:document.getElementById('cIndustry').value.trim(),level:document.getElementById('cLevel').value,source:document.getElementById('cSource').value.trim(),owner:document.getElementById('cOwner').value.trim(),address:document.getElementById('cAddress').value.trim(),note:document.getElementById('cNote').value.trim(),status:'正常',totalOrders:0,totalAmount:0,createdAt:new Date().toISOString()});
+    audit.log('CRM','新增客户',code,`客户名称: ${name}`);
     closeModal();toast('客户添加成功！');this.reload();
   },
 
@@ -799,7 +800,7 @@ const crm = {
         const list = DB.get('crmLeads');
         if (!list.length) { toast('没有可导出的数据', 'warning'); return; }
         headers = ['编号', '姓名', '电话', '公司', '职位', '来源', '意向度', '负责人', '状态'];
-        rows = list.map(l => [l.code, l.name, l.phone, l.company||'', l.position||'', l.source||'', l.interest||'', l.owner||'', l.status||'']);
+        rows = list.map(l => [l.code, l.name, l.phone, l.company||'', l.position||'', l.source||'', l.level||'', l.owner||'', l.status||'']);
         filename = 'CRM线索列表';
         break;
       }
@@ -815,7 +816,7 @@ const crm = {
         const list = DB.get('crmContracts');
         if (!list.length) { toast('没有可导出的数据', 'warning'); return; }
         headers = ['编号', '合同名称', '客户', '金额', '开始日期', '结束日期', '状态'];
-        rows = list.map(c => [c.code, c.name, c.clientName||'', c.amount||0, c.startDate||'', c.endDate||'', c.status||'']);
+        rows = list.map(c => [c.code, c.name, c.customerName||'', c.amount||0, c.startDate||'', c.endDate||'', c.status||'']);
         filename = 'CRM合同列表';
         break;
       }

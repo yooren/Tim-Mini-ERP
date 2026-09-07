@@ -546,8 +546,7 @@ const salesKpi = {
     const month = this.currentMonth;
     const kpis = DB.get('salesKpis') || [];
     const outbounds = DB.get('outbounds') || [];
-    const employees = DB.get('employees') || [];
-    const salesmen = employees.filter(e => e.status === 1 && e.isSalesman);
+    const salesmen = this.getSalesmen();
     
     let csv = '\uFEFF销售人员,部门,目标销售额,目标订单数,实际销售额,实际订单数,完成率\n';
     

@@ -272,12 +272,19 @@
 }
 
 .welcome-subtitle {
-  color: rgba(255,255,255,0.35);
-  font-size: 13px;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  margin-bottom: 52px;
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
   animation: fadeSlideIn 0.6s ease 1.2s both;
+}
+
+.welcome-mission {
+  color: rgba(255,255,255,0.3);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  margin-bottom: 52px;
+  animation: fadeSlideIn 0.6s ease 1.4s both;
 }
 
 @keyframes fadeSlideIn {
@@ -740,6 +747,15 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.login-studio-credit {
+  margin-top: 22px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.2px;
+  opacity: 0.75;
 }
 
 /* =====================================================================

@@ -379,22 +379,33 @@ const invoice = {
     </html>`;
 
     const win = window.open('', '_blank', 'width=800,height=600');
+    if (!win) { toast('浏览器拦截了打印预览窗口，请允许该网站的弹窗后重试', 'error'); return; }
     win.document.write(printHtml);
     win.document.close();
-    win.onload = () => { win.print(); };
+    setTimeout(() => win.print(), 300);
   },
 
   toChineseNum(num) {
     const fraction = ['角', '分'];
     const digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
     const unit = [['元', '万', '亿'], ['', '拾', '佰', '仟']];
+    const neg = num < 0;
+    let n = Math.round(Math.abs(num) * 100);
     let s = '';
-    num = Math.round(num * 100) / 100;
-    if (num === 0) return '零圆整';
-    if (num < 0) { s = '负'; num = Math.abs(num); }
-    const Decimal = num.toString().split('.')[1] || '';
-    const Int = num.toString().split('.')[0];
-    if (Int !== '0') s += digit[Int[0]] + '圆整';
-    return s;
+    for (let i = 0; i < fraction.length; i++) {
+      s += (digit[Math.floor(n / Math.pow(10, 1 - i)) % 10] + fraction[i]).replace(/零./, '');
+    }
+    s = s || '整';
+    n = Math.floor(n / 100);
+    for (let i = 0; i < unit[0].length && n > 0; i++) {
+      let p = '';
+      for (let j = 0; j < unit[1].length && n > 0; j++) {
+        p = digit[n % 10] + unit[1][j] + p;
+        n = Math.floor(n / 10);
+      }
+      s = p.replace(/(零.)*零$/, '').replace(/^$/, '零') + unit[0][i] + s;
+    }
+    s = s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
+    return (neg ? '负' : '') + s;
   }
 };

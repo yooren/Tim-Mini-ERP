@@ -52,6 +52,13 @@ const LicenseGate = {
     return (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0');
   },
 
+  // 本地日历日期字符串（YYYY-MM-DD），不能用 toISOString()：它按 UTC 换算，
+  // 在东八区这类正时区会导致每天前 8 小时把"今天"错算成"昨天"（试用期/授权到期判断因此偏移一整天）
+  _localDateStr(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  },
+
   // Unicode 安全的 base64（客户名称可能含中文）
   _b64encode(str) {
     return btoa(unescape(encodeURIComponent(str)));
@@ -95,7 +102,7 @@ const LicenseGate = {
   verify(code) {
     const parsed = this.parse(code);
     if (!parsed.valid) return { valid: false, expired: false, error: parsed.error };
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this._localDateStr();
     const expired = parsed.payload.e < today;
     return { valid: !expired, expired, payload: parsed.payload };
   },
@@ -118,14 +125,15 @@ const LicenseGate = {
   // 试用期状态：{ startDate, endDate, daysLeft, active }
   // daysLeft 为负数表示已超出试用期多少天
   getTrialStatus() {
-    const startDate = localStorage.getItem(this._TRIAL_START_KEY) || new Date().toISOString().slice(0, 10);
+    const startDate = localStorage.getItem(this._TRIAL_START_KEY) || this._localDateStr();
     const start = new Date(startDate + 'T00:00:00');
-    const end = new Date(start.getTime() + this._TRIAL_DAYS * 86400000);
-    const today = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00');
+    // -1：起始日当天就算试用期第1天，这样首尾都算上正好是 _TRIAL_DAYS 天，而不是多算一天
+    const end = new Date(start.getTime() + (this._TRIAL_DAYS - 1) * 86400000);
+    const today = new Date(this._localDateStr() + 'T00:00:00');
     const daysLeft = Math.round((end - today) / 86400000);
     return {
       startDate,
-      endDate: end.toISOString().slice(0, 10),
+      endDate: this._localDateStr(end),
       daysLeft,
       active: daysLeft >= 0
     };

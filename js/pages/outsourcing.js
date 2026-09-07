@@ -286,10 +286,9 @@ const outsourcing = {
     const g = DB.findById('goods', gid);
     const order = DB.findById('outsourcingOrders', orderId);
 
-    // 扣减库存
-    if (g && g.stock >= qty) {
-      DB.update('goods', gid, { stock: g.stock - qty });
-    }
+    // 扣减库存：库存不足时中止发料，不能一边提示成功一边不实际扣减库存
+    if (!g || g.stock < qty) { toast('库存不足，无法发料', 'error'); return; }
+    DB.update('goods', gid, { stock: g.stock - qty });
 
     // 添加发料记录
     DB.add('outsourcingMaterials', {

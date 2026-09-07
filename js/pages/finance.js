@@ -422,7 +422,7 @@ const finance = {
           ${accounts.map(a => {
             const stats = accountStats[a.code] || { debit: 0, credit: 0 };
             const initBalance = a.direction === '借' ? (a.initDebit || 0) - (a.initCredit || 0) : (a.initCredit || 0) - (a.initDebit || 0);
-            const endBalance = initBalance + stats.debit - stats.credit;
+            const endBalance = a.direction === '借' ? initBalance + stats.debit - stats.credit : initBalance + stats.credit - stats.debit;
             return `<tr>
               <td style="font-family:monospace">${a.code}</td>
               <td ${a.level === 1 ? 'style="font-weight:600"' : ''}>${a.name}</td>
@@ -876,15 +876,19 @@ const finance = {
     if (!hasPerm('finance', 'approve')) { toast('没有审核权限', 'error'); return; }
     const invoice = DB.findById('finARInvoices', invoiceId);
     if (!invoice) return;
+    const alreadyReceived = DB.get('finARCollections').filter(c => c.invoiceId === invoiceId).reduce((s, c) => s + c.amount, 0);
+    const remaining = Math.max(0, invoice.amount - alreadyReceived);
 
     openModal('收款登记', `
       <div style="margin-bottom:16px;padding:12px;background:var(--bg);border-radius:8px">
         <div>发票号：<strong>${invoice.code}</strong></div>
         <div>客户：<strong>${invoice.customerName}</strong></div>
-        <div>应付金额：<strong style="color:var(--success)">${fmtMoney(invoice.amount)}</strong></div>
+        <div>发票金额：<strong>${fmtMoney(invoice.amount)}</strong></div>
+        ${alreadyReceived > 0 ? `<div>已收金额：<strong>${fmtMoney(alreadyReceived)}</strong></div>` : ''}
+        <div>剩余应收：<strong style="color:var(--success)">${fmtMoney(remaining)}</strong></div>
       </div>
       <div class="form-row cols-2">
-        <div class="form-item"><label>收款金额</label><input id="recvAmount" type="number" min="0" max="${invoice.amount}" step="0.01" value="${invoice.amount}"></div>
+        <div class="form-item"><label>收款金额</label><input id="recvAmount" type="number" min="0" max="${remaining}" step="0.01" value="${remaining}"></div>
         <div class="form-item"><label>收款日期</label><input id="recvDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
       </div>
       <div class="form-item"><label>收款方式</label>
@@ -1116,10 +1120,17 @@ const finance = {
     if (!hasPerm('finance', 'approve')) { toast('没有审核权限', 'error'); return; }
     const invoice = DB.findById('finAPInvoices', invoiceId);
     if (!invoice) return;
+    const alreadyPaid = DB.get('finAPPayments').filter(p => p.invoiceId === invoiceId).reduce((s, p) => s + p.amount, 0);
+    const remaining = Math.max(0, invoice.amount - alreadyPaid);
 
     openModal('付款登记', `
+      ${alreadyPaid > 0 ? `<div style="margin-bottom:12px;padding:12px;background:var(--bg);border-radius:8px">
+        <div>发票金额：<strong>${fmtMoney(invoice.amount)}</strong></div>
+        <div>已付金额：<strong>${fmtMoney(alreadyPaid)}</strong></div>
+        <div>剩余应付：<strong style="color:var(--danger)">${fmtMoney(remaining)}</strong></div>
+      </div>` : ''}
       <div class="form-row cols-2">
-        <div class="form-item"><label>付款金额</label><input id="payAmount" type="number" min="0" max="${invoice.amount}" step="0.01" value="${invoice.amount}"></div>
+        <div class="form-item"><label>付款金额</label><input id="payAmount" type="number" min="0" max="${remaining}" step="0.01" value="${remaining}"></div>
         <div class="form-item"><label>付款日期</label><input id="payDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
       </div>
       <input type="hidden" id="payInvoiceId" value="${invoiceId}">

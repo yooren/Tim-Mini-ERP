@@ -1076,7 +1076,7 @@ const hrm = {
     const tab = this.activeTab;
     let headers, rows, filename;
     switch(tab) {
-      case 'file': {
+      case 'files': {
         const list = DB.get('hrFiles');
         if (!list.length) { toast('没有可导出的数据', 'warning'); return; }
         headers = ['工号', '姓名', '部门', '岗位', '入职日期', '合同类型', '合同到期', '学历', '电话', '邮箱', '状态'];

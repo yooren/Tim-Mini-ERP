@@ -190,7 +190,7 @@ const AutoBackupSync = {
         data[k] = JSON.parse(localStorage.getItem('wms_' + k) || '[]');
       });
       data._backupInfo = {
-        version: '3.0.0',
+        version: '1.0.0',
         createdAt: new Date().toISOString(),
         type: 'auto',
         auto: true
@@ -329,7 +329,7 @@ function openLicensePanel() {
   const status = LicenseGate.getStatus();
   let statusClass = 'ok', statusHtml = '';
   if (status.mode === 'license') {
-    const daysLeft = Math.round((new Date(status.payload.e) - new Date(new Date().toISOString().slice(0,10))) / 86400000);
+    const daysLeft = Math.round((new Date(status.payload.e) - new Date(LicenseGate._localDateStr())) / 86400000);
     statusClass = status.valid ? (daysLeft <= 7 ? 'warn' : 'ok') : 'danger';
     statusHtml = `
       <div style="font-weight:700;margin-bottom:6px">${status.valid ? '✅ 授权有效' : '❌ 授权已过期'}</div>
@@ -643,7 +643,7 @@ function checkLicenseReminder() {
   const status = LicenseGate.getStatus();
   let daysLeft;
   if (status.mode === 'license') {
-    daysLeft = Math.round((new Date(status.payload.e) - new Date(new Date().toISOString().slice(0, 10))) / 86400000);
+    daysLeft = Math.round((new Date(status.payload.e) - new Date(LicenseGate._localDateStr())) / 86400000);
   } else {
     daysLeft = status.trial.daysLeft;
   }
@@ -1216,7 +1216,7 @@ function applyLogoSettings() {
   let ps = {};
   try { ps = JSON.parse(localStorage.getItem('wms_printSettings') || '{}'); } catch(e) {}
   const showLogo = ps.showLogo !== false; // 默认显示
-  const logoUrl = ps.logoUrl || 'LOGO.png';
+  const logoUrl = ps.logoUrl || 'LOGO.svg';
   
   // 更新所有 Logo 图片
   const logoImgs = document.querySelectorAll('#welcomeLogo, #loginLogo, #loginLogoCompact, #sidebarLogo img');
@@ -1369,8 +1369,8 @@ document.addEventListener('mousemove', function(e) {
 
 // ===== 品牌/登录文字自定义 =====
 function applyBranding() {
-  const sysName = localStorage.getItem('wms_sysName') || '综合业务管理系统';
-  const sysSubtitle = localStorage.getItem('wms_sysSubtitle') || 'Integrated business management system';
+  const sysName = localStorage.getItem('wms_sysName') || 'Tim Mini ERP';
+  const sysSubtitle = localStorage.getItem('wms_sysSubtitle') || '做更顺手的软件与工具';
   const loginTitle = localStorage.getItem('wms_loginTitle') || '欢迎回来';
   const loginSubtitle = localStorage.getItem('wms_loginSubtitle') || '请登录您的账号以继续使用';
   const loginTip = localStorage.getItem('wms_loginTip') || '';
@@ -1417,7 +1417,7 @@ function applyBranding() {
 
   // 侧边栏版本号
   const sidebarVersion = document.getElementById('sidebarVersion');
-  const sysVersion = localStorage.getItem('wms_sysVersion') || 'v3.0.0';
+  const sysVersion = localStorage.getItem('wms_sysVersion') || 'v1.0.0';
   if (sidebarVersion) sidebarVersion.textContent = sysVersion;
 
   // Logo 设置

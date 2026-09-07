@@ -23,7 +23,7 @@ const MIME = {
 
 const server = http.createServer((req, res) => {
   let reqPath = decodeURIComponent(req.url.split('?')[0]);
-  if (reqPath === '/') reqPath = '/智能业务管理系统.html';
+  if (reqPath === '/') reqPath = '/TimMiniERP.html';
 
   const filePath = path.normalize(path.join(ROOT, reqPath));
   // 防止路径穿越到 ROOT 目录之外

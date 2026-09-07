@@ -386,7 +386,7 @@ const productionPlan = {
               <td>${(item.scrapRate * 100).toFixed(0)}%</td>
               <td>${totalNeed.toFixed(2)}</td>
               <td>${stock}</td>
-              <td style="color:${shortage > 0 ? 'var(--danger)' : 'var(--success)'}">${shortness > 0 ? shortage.toFixed(2) : '充足'}</td>
+              <td style="color:${shortage > 0 ? 'var(--danger)' : 'var(--success)'}">${shortage > 0 ? shortage.toFixed(2) : '充足'}</td>
             </tr>`;
           }).join('')}
         </tbody>

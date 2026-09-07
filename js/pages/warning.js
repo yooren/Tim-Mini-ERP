@@ -24,8 +24,8 @@ const warning = {
 
     // 售后工单预警
     const tickets = DB.get('serviceTickets') || [];
-    const overdueTickets = tickets.filter(t => [0, 1].includes(t.status) && t.dueDate && t.dueDate < today);
-    const pendingTickets = tickets.filter(t => t.status === 0);
+    const overdueTickets = tickets.filter(t => ['待派工', '处理中'].includes(t.status) && t.dueDate && t.dueDate < today);
+    const pendingTickets = tickets.filter(t => t.status === '待派工');
 
     // 总预警数
     const totalWarnings = outStock.length + lowStock.length + overdueMaint.length + overdueTickets.length;
@@ -216,12 +216,12 @@ const warning = {
           <thead><tr><th>工单号</th><th>类型</th><th>客户</th><th>故障描述</th><th>截止日期</th><th>超时天数</th><th>优先级</th><th>操作</th></tr></thead>
           <tbody>${overdue.map(t => {
             const days = Math.floor((new Date() - new Date(t.dueDate)) / (1000*60*60*24));
-            const priorityColor = t.priority === '高' ? 'var(--danger)' : t.priority === '中' ? 'var(--warning)' : 'var(--text-muted)';
+            const priorityColor = t.priority === '紧急' ? 'var(--danger)' : t.priority === '一般' ? 'var(--warning)' : 'var(--text-muted)';
             return `<tr>
-              <td style="font-size:12px;color:var(--primary);font-family:monospace">${t.ticketNo}</td>
-              <td><span class="badge badge-default">${t.type}</span></td>
+              <td style="font-size:12px;color:var(--primary);font-family:monospace">${t.code || t.ticketNo || ''}</td>
+              <td><span class="badge badge-default">${t.type || ''}</span></td>
               <td style="font-weight:600">${t.customerName}</td>
-              <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.faultDesc}</td>
+              <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.problem || t.faultDesc || ''}</td>
               <td style="color:var(--danger);font-weight:600">${t.dueDate}</td>
               <td><span class="badge badge-danger">超时 ${days} 天</span></td>
               <td><span style="font-weight:600;color:${priorityColor}">${t.priority}</span></td>
@@ -238,13 +238,13 @@ const warning = {
         <div class="table-wrap"><table>
           <thead><tr><th>工单号</th><th>类型</th><th>客户</th><th>故障描述</th><th>创建日期</th><th>优先级</th><th>操作</th></tr></thead>
           <tbody>${pending.map(t => {
-            const priorityColor = t.priority === '高' ? 'var(--danger)' : t.priority === '中' ? 'var(--warning)' : 'var(--text-muted)';
+            const priorityColor = t.priority === '紧急' ? 'var(--danger)' : t.priority === '一般' ? 'var(--warning)' : 'var(--text-muted)';
             return `<tr>
-              <td style="font-size:12px;color:var(--primary);font-family:monospace">${t.ticketNo}</td>
-              <td><span class="badge badge-default">${t.type}</span></td>
+              <td style="font-size:12px;color:var(--primary);font-family:monospace">${t.code || t.ticketNo || ''}</td>
+              <td><span class="badge badge-default">${t.type || ''}</span></td>
               <td style="font-weight:600">${t.customerName}</td>
-              <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.faultDesc}</td>
-              <td style="font-size:12px;color:var(--text-muted)">${t.createDate}</td>
+              <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.problem || t.faultDesc || ''}</td>
+              <td style="font-size:12px;color:var(--text-muted)">${(t.createdAt || t.createDate || '').slice(0, 10)}</td>
               <td><span style="font-weight:600;color:${priorityColor}">${t.priority}</span></td>
               <td><button class="btn btn-outline btn-sm" onclick="showPage('eam')">去分配</button></td>
             </tr>`;

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="docTitle">综合业务管理系统</title>
-  <link rel="icon" type="image/png" href="LOGO.png" sizes="64x64">
+  <title id="docTitle">Tim Mini ERP</title>
+  <link rel="icon" type="image/svg+xml" href="LOGO.svg">
   <!-- Lucide Icons (SVG sprite via CDN) -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="css/main.css">
@@ -42,15 +42,15 @@
         <div class="logo-ring ring-2"></div>
         <div class="logo-ring ring-3"></div>
         <div class="logo-glow"></div>
-        <img src="LOGO.png" alt="Logo" class="logo-icon-img" id="welcomeLogo" onerror="this.style.display='none'">
+        <img src="LOGO.svg" alt="Logo" class="logo-icon-img" id="welcomeLogo" onerror="this.style.display='none'">
       </div>
     </div>
     <div class="welcome-title">
-      <span class="title-char">ERP</span>
-      <span class="title-char title-gap">综合</span>
-      <span class="title-char">系统</span>
+      <span class="title-char">Tim Mini</span>
+      <span class="title-char title-gap">ERP</span>
     </div>
-    <div class="welcome-subtitle">ERP Integrated System</div>
+    <div class="welcome-subtitle">做更顺手的软件与工具</div>
+    <div class="welcome-mission">从实际需求出发，把复杂的事情，做得简单一点。</div>
     <div class="welcome-progress">
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
@@ -71,11 +71,11 @@
     <div class="login-left">
       <div class="login-brand">
         <div class="brand-icon">
-          <img src="LOGO.png" alt="Logo" class="brand-icon-img" id="loginLogo" onerror="this.style.display='none'">
+          <img src="LOGO.svg" alt="Logo" class="brand-icon-img" id="loginLogo" onerror="this.style.display='none'">
         </div>
         <div>
-          <div class="brand-name" id="loginBrandName">综合业务管理系统</div>
-          <div class="brand-en" id="loginBrandEn">Integrated business management system</div>
+          <div class="brand-name" id="loginBrandName">Tim Mini ERP</div>
+          <div class="brand-en" id="loginBrandEn">做更顺手的软件与工具</div>
         </div>
       </div>
       <div class="login-features">
@@ -147,10 +147,10 @@
       <div class="login-form-wrap">
         <div class="login-compact-brand">
           <div class="compact-brand-icon">
-            <img src="LOGO.png" alt="Logo" class="brand-icon-img" id="loginLogoCompact" onerror="this.style.display='none'">
+            <img src="LOGO.svg" alt="Logo" class="brand-icon-img" id="loginLogoCompact" onerror="this.style.display='none'">
           </div>
-          <div class="compact-brand-name" id="loginBrandNameCompact">综合业务管理系统</div>
-          <div class="compact-brand-en" id="loginBrandEnCompact">Integrated business management system</div>
+          <div class="compact-brand-name" id="loginBrandNameCompact">Tim Mini ERP</div>
+          <div class="compact-brand-en" id="loginBrandEnCompact">做更顺手的软件与工具</div>
         </div>
         <div class="login-form-header">
           <div class="login-form-title" id="loginFormTitle">欢迎回来</div>
@@ -201,6 +201,7 @@
           <span id="loginTipText"></span>
         </div>
         <div id="loginError" class="login-error hidden">账号或密码错误，请重试</div>
+        <div class="login-studio-credit">Tim Ren Studio 工作室出品</div>
       </div>
     </div>
   </div>
@@ -231,11 +232,11 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo" id="sidebarLogo">
-        <img src="LOGO.png" alt="Logo" class="sidebar-logo-img" onerror="this.style.display='none'">
+        <img src="LOGO.svg" alt="Logo" class="sidebar-logo-img" onerror="this.style.display='none'">
       </div>
       <div class="sidebar-title">
-        <div class="sidebar-name" id="sidebarName">综合业务管理系统</div>
-        <div class="sidebar-version"><span id="sidebarAccountName" style="color:var(--primary);font-weight:600"></span> <span id="sidebarVersion" onclick="handleVersionClick()" style="cursor:default;user-select:none">v3.0.0</span></div>
+        <div class="sidebar-name" id="sidebarName">Tim Mini ERP</div>
+        <div class="sidebar-version"><span id="sidebarAccountName" style="color:var(--primary);font-weight:600"></span> <span id="sidebarVersion" onclick="handleVersionClick()" style="cursor:default;user-select:none">v1.0.0</span></div>
       </div>
       <button class="sidebar-toggle" onclick="toggleSidebar()" title="折叠菜单">
         <svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>

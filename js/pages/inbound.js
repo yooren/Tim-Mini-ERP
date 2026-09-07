@@ -87,7 +87,7 @@ const inbound = {
                 <button class="btn btn-ghost btn-sm" onclick="inbound.view(${r.id})">👁 查看</button>
                 <button class="btn btn-ghost btn-sm" onclick="inbound.edit(${r.id})">✏️ 编辑</button>
                 ${st === '待审核' && currentUser.role === 'admin' ? `<button class="btn btn-primary btn-sm" onclick="inbound.approve(${r.id})">✅ 审核</button>` : ''}
-                ${st === '已审核' ? `<button class="btn btn-outline btn-sm" onclick="inbound.printOrder(${r.id})">🖨 打印</button>${r.type==='退货入库'?`<button class="btn btn-outline btn-sm" onclick="PrintManager.printSalesOrder(${r.id},'inbound')">📄 退单</button>`:''}` : ''}
+                ${(st === '已审核' || st === '已完成') ? `<button class="btn btn-outline btn-sm" onclick="inbound.printOrder(${r.id})">🖨 打印</button>${r.type==='退货入库'?`<button class="btn btn-outline btn-sm" onclick="PrintManager.printSalesOrder(${r.id},'inbound')">📄 退单</button>`:''}` : ''}
                 <button class="btn btn-danger btn-sm" onclick="inbound.del(${r.id})">🗑 删除</button>
               </div>
             </td>
@@ -628,7 +628,6 @@ const inbound = {
     // 设备入库：注册设备编号到设备台账（入库单有设备编号就注册，不检查分类）
     let equipRegistered = 0;
     if (r.equipSerials && r.equipSerials.length > 0) {
-      if (!localStorage.getItem('equipmentRegistry')) localStorage.setItem('equipmentRegistry', '[]');
       const registry = DB.get('equipmentRegistry') || [];
       r.equipSerials.forEach(serial => {
         if (serial && serial.trim()) {
@@ -653,7 +652,7 @@ const inbound = {
           }
         }
       });
-      localStorage.setItem('equipmentRegistry', JSON.stringify(registry));
+      DB.set('equipmentRegistry', registry);
     }
 
     audit.log('inbound', '审核通过', r.goodsName, `单号: ${r.code}, 数量: +${r.qty}, 审核人: ${currentUser.username}`);
@@ -839,7 +838,7 @@ const inbound = {
       <div class="print-header">
         <div>
           <div class="print-title">${r.type === '退货入库' ? '退 货 入 库 单' : '入 库 单'}</div>
-          <div class="print-sub">综合业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, '')}</div>
+          <div class="print-sub">Tim Mini ERP ${(localStorage.getItem('wms_sysVersion') || 'v1.0').replace(/^v/, '')}</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -876,9 +875,10 @@ const inbound = {
     </html>`;
 
     const win = window.open('', '_blank', 'width=800,height=600');
+    if (!win) { toast('浏览器拦截了打印预览窗口，请允许该网站的弹窗后重试', 'error'); return; }
     win.document.write(printHtml);
     win.document.close();
-    win.onload = () => { win.print(); };
+    setTimeout(() => win.print(), 300);
   },
 
   view(id) {
@@ -930,7 +930,7 @@ const inbound = {
         </div>` : ''}
       </div>`,
       `<button class="btn btn-ghost" onclick="closeModal()">关闭</button>
-       ${st === '已审核' ? `<button class="btn btn-primary" onclick="inbound.printOrder(${id})">🖨 打印</button>` : ''}
+       ${(st === '已审核' || st === '已完成') ? `<button class="btn btn-primary" onclick="inbound.printOrder(${id})">🖨 打印</button>` : ''}
        ${st === '待审核' && currentUser.role === 'admin' ? `<button class="btn btn-primary" onclick="closeModal();inbound.approve(${id})">✅ 审核</button>` : ''}`
     );
   },

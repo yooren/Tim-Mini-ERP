@@ -32,16 +32,16 @@ const PrintManager = {
     // 读取自定义打印设置
     let ps = {};
     try { ps = JSON.parse(localStorage.getItem('wms_printSettings') || '{}'); } catch(e) {}
-    const companyName = ps.companyName || '综合业务管理系统';
-    const companySub = ps.companySub || ('综合业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, ''));
+    const companyName = ps.companyName || 'Tim Mini ERP';
+    const companySub = ps.companySub || ('Tim Mini ERP ' + (localStorage.getItem('wms_sysVersion') || 'v1.0').replace(/^v/, ''));
     const fontSize = ps.fontSize || 14;
     const showFooter = ps.showFooter !== false;
     const footerText = ps.footerText || '本单据由系统自动生成';
     const showLogo = ps.showLogo !== false;
-    const logoUrl = ps.logoUrl || 'LOGO.png';
+    const logoUrl = ps.logoUrl || 'LOGO.svg';
 
     // 替换模板中的公司名称
-    let html = bodyHtml.replace(/智能仓储管理系统 WMS v2\.1/g, companySub);
+    let html = bodyHtml.replace(/__COMPANY_SUB_PLACEHOLDER__/g, companySub);
     
     // 添加 Logo 到打印头部（如果启用）
     if (showLogo && logoUrl) {
@@ -59,12 +59,13 @@ const PrintManager = {
 
     const style = this._baseStyle().replace('font-size: 14px', `font-size: ${fontSize}px`);
     const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { toast('浏览器拦截了打印预览窗口，请允许该网站的弹窗后重试', 'error'); return; }
     w.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>${style}</style></head><body>${html}</body></html>`);
     w.document.close();
-    
+
     const autoPrint = ps.autoPrint !== false;
     if (autoPrint) {
-      w.onload = () => w.print();
+      setTimeout(() => w.print(), 300);
     }
   },
 
@@ -77,7 +78,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">${isReturn ? '退 货 入 库 单' : '入 库 单'}</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -116,7 +117,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">${isReturn ? '退 货 出 库 单' : '出 库 单'}</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -157,7 +158,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">库 存 盘 点 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -194,7 +195,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">运 输 计 划 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>计划号: <strong>${r.planNo}</strong></div>
@@ -234,7 +235,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">配 送 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>配送单号: <strong>${r.planNo}</strong></div>
@@ -267,7 +268,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">${r.type || '增值税发票'}</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>发票号: <strong>${r.invoiceNo}</strong></div>
@@ -311,7 +312,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">生 产 工 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>工单号: <strong>${r.orderNo}</strong></div>
@@ -355,7 +356,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">委 外 加 工 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.orderNo}</strong></div>
@@ -418,7 +419,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">售 后 工 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>工单号: <strong>${code}</strong></div>
@@ -463,7 +464,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">仓 库 调 拨 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -525,7 +526,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">${title}</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>单号: <strong>${r.code}</strong></div>
@@ -564,7 +565,7 @@ const PrintManager = {
       <div class="print-header">
         <div>
           <div class="print-title">打 印 测 试 单</div>
-          <div class="print-sub">智能仓储管理系统 WMS v2.1</div>
+          <div class="print-sub">__COMPANY_SUB_PLACEHOLDER__</div>
         </div>
         <div style="text-align:right;font-size:13px">
           <div>测试单号: <strong>TEST-001</strong></div>

@@ -188,11 +188,14 @@ const mes = {
       createdAt: new Date().toISOString().slice(0, 10)
     });
 
-    // 更新工单完成数
+    // 更新工单完成数：取"最后一道工序"的完成数，代表已走完全部工序的成品数量，
+    // 不能把各工序的 completedQty 直接相加（同一件产品会依次经过多道工序，相加会重复计数）
     const order = DB.findById('productionOrders', op.orderId);
     if (order) {
-      const totalCompleted = DB.get('orderProcesses').filter(p => p.orderId === op.orderId).reduce((s, p) => s + p.completedQty, 0);
-      DB.update('productionOrders', op.orderId, { completedQty: totalCompleted });
+      const orderProcesses = DB.get('orderProcesses').filter(p => p.orderId === op.orderId);
+      const maxSeq = Math.max(...orderProcesses.map(p => p.sequence || 0));
+      const finalStage = orderProcesses.find(p => (p.sequence || 0) === maxSeq);
+      DB.update('productionOrders', op.orderId, { completedQty: finalStage ? finalStage.completedQty : 0 });
     }
 
     toast('报工成功', 'success');
@@ -527,7 +530,7 @@ const mes = {
     const code = DB.genCode('TL');
     openModal('添加模具', `
       <div class="form-row cols-2">
-        <div class="form-item"><label>模具编码</label><input value="${code}" readonly style="background:#f0f2f8"></div>
+        <div class="form-item"><label>模具编码</label><input id="toolCode" value="${code}" readonly style="background:#f0f2f8"></div>
         <div class="form-item"><label>名称 *</label><input id="toolName" placeholder="模具名称"></div>
       </div>
       <div class="form-row cols-2">
@@ -556,7 +559,7 @@ const mes = {
     if (!name) { toast('请输入名称', 'error'); return; }
 
     DB.add('tools', {
-      code: document.querySelector('[id="toolName"]') ? document.getElementById('toolName').value || document.querySelector('#toolName ~ input')?.value || 'TL' + Date.now() : 'TL' + Date.now(),
+      code: document.getElementById('toolCode').value,
       name,
       category: document.getElementById('toolCategory').value,
       location: document.getElementById('toolLocation').value,

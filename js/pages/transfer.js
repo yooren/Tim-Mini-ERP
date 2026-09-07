@@ -123,7 +123,8 @@ const transfer = {
   openAdd() {
     if (!hasPerm('transfer', 'create')) { toast('没有新建权限', 'error'); return; }
     const goods = DB.get('goods').filter(g => g.status === 1);
-    const warehouses = DB.get('warehouses') || [{ id: 1, name: '主仓库' }, { id: 2, name: '分仓库A' }, { id: 3, name: '分仓库B' }];
+    const whList = DB.get('warehouses');
+    const warehouses = whList.length ? whList : [{ id: 1, name: '主仓库' }, { id: 2, name: '分仓库A' }, { id: 3, name: '分仓库B' }];
     const today = new Date().toISOString().slice(0, 10);
 
     openModal('新建调拨单', `

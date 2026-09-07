@@ -78,7 +78,7 @@ const outbound = {
             <button class="btn btn-ghost btn-sm" onclick="outbound.view(${r.id})">👁 查看</button>
             <button class="btn btn-ghost btn-sm" onclick="outbound.edit(${r.id})">✏️ 编辑</button>
             ${st === '待审核' && currentUser.role === 'admin' ? `<button class="btn btn-primary btn-sm" onclick="outbound.approve(${r.id})">✅ 审核</button>` : ''}
-            ${st === '已审核' ? `<button class="btn btn-outline btn-sm" onclick="PrintManager.printSalesOrder(${r.id})">📄 销售单</button><button class="btn btn-outline btn-sm" onclick="outbound.printOrder(${r.id})">🖨 打印</button>` : ''}
+            ${(st === '已审核' || st === '已完成') ? `<button class="btn btn-outline btn-sm" onclick="PrintManager.printSalesOrder(${r.id})">📄 销售单</button><button class="btn btn-outline btn-sm" onclick="outbound.printOrder(${r.id})">🖨 打印</button>` : ''}
             <button class="btn btn-danger btn-sm" onclick="outbound.del(${r.id})">🗑 删除</button>
           </div></td></tr>`;
       }).join('')}</tbody>
@@ -327,8 +327,7 @@ const outbound = {
         const hasEquipInbound = (DB.get('inbounds') || []).some(inb => 
           parseInt(inb.goodsId) === gid && inb.status === '已审核' && inb.equipSerials && inb.equipSerials.some(s => s && s.trim())
         );
-        const hasEquipRegistry = localStorage.getItem('equipmentRegistry') && 
-          (DB.get('equipmentRegistry') || []).some(e => parseInt(e.goodsId) === gid && e.status === 'available');
+        const hasEquipRegistry = (DB.get('equipmentRegistry') || []).some(e => parseInt(e.goodsId) === gid && e.status === 'available');
         const showEquipSelect = isEquipment || hasEquipInbound || hasEquipRegistry;
         
         if (isOfficeSupply) {
@@ -369,7 +368,7 @@ const outbound = {
     const equipSerials = [];
     
     // 优先从设备注册表读取
-    if (localStorage.getItem('equipmentRegistry')) {
+    {
       const registry = DB.get('equipmentRegistry') || [];
       const available = registry.filter(e => parseInt(e.goodsId) === parseInt(goodsId) && e.status === 'available');
       available.forEach(e => {
@@ -1025,11 +1024,7 @@ const outbound = {
         ticketCodes.push(ticketCode);
         
         // 获取设备注册信息
-        let equipInfo = null;
-        if (localStorage.getItem('equipmentRegistry')) {
-          const registry = DB.get('equipmentRegistry') || [];
-          equipInfo = registry.find(e => e.serial === serial);
-        }
+        const equipInfo = (DB.get('equipmentRegistry') || []).find(e => e.serial === serial);
         const ticketData = {
           code: ticketCode,
           equipmentCode: serial,
@@ -1061,14 +1056,14 @@ const outbound = {
         DB.add('serviceTickets', ticketData);
         
         // 更新设备注册表状态为已使用
-        if (localStorage.getItem('equipmentRegistry')) {
+        {
           const registry = DB.get('equipmentRegistry') || [];
           const idx = registry.findIndex(e => e.serial === serial);
           if (idx !== -1) {
             registry[idx].status = 'used';
             registry[idx].usedOutboundCode = r.code;
             registry[idx].usedDate = new Date().toISOString();
-            localStorage.setItem('equipmentRegistry', JSON.stringify(registry));
+            DB.set('equipmentRegistry', registry);
           }
         }
         audit.log('outbound', '设备出库工单同步', serial, `工单号: ${ticketCode} 已自动创建`);
@@ -1128,6 +1123,7 @@ const outbound = {
     const r = DB.findById('outbounds', id); if (!r) return;
     const isReturn = r.type === '退货出库';
     const w = window.open('', '_blank', 'width=800,height=600');
+    if (!w) { toast('浏览器拦截了打印预览窗口，请允许该网站的弹窗后重试', 'error'); return; }
     w.document.write(`<html><head><meta charset="UTF-8"><title>出库单 - ${r.code}</title><style>
       *{margin:0;padding:0;box-sizing:border-box}body{font-family:"Microsoft YaHei","SimHei",sans-serif;padding:40px;color:#333;font-size:14px}
       .ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:20px}
@@ -1138,7 +1134,7 @@ const outbound = {
       .pf{display:flex;justify-content:space-between;margin-top:40px;font-size:13px;color:#666}.pf div{text-align:center;min-width:150px}.pf .sl{border-bottom:1px solid #ccc;margin-top:40px;width:120px;display:inline-block}
       @media print{body{padding:20px}}
     </style></head><body>
-      <div class="ph"><div><div class="pt">${isReturn ? '退 货 出 库 单' : '出 库 单'}</div><div class="ps">综合业务管理系统 ERP ${(localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, '')}</div></div>
+      <div class="ph"><div><div class="pt">${isReturn ? '退 货 出 库 单' : '出 库 单'}</div><div class="ps">Tim Mini ERP ${(localStorage.getItem('wms_sysVersion') || 'v1.0').replace(/^v/, '')}</div></div>
         <div style="text-align:right;font-size:13px"><div>单号: <strong>${r.code}</strong></div><div>日期: ${r.date}</div><div>类型: ${isReturn ? '退货出库' : '销售出库'}</div><div>状态: ${r.status||'已完成'}</div></div></div>
       <div class="pm">
         <div><span class="l">${isReturn ? '退回供应商：' : '客户：'}</span>${r.customerName}</div><div><span class="l">操作员：</span>${r.operator}</div>
@@ -1154,7 +1150,7 @@ const outbound = {
       ${r.reviewNote?`<div style="margin-bottom:20px;font-size:13px"><span style="color:#666">审核意见：</span>${r.reviewNote}</div>`:''}
       <div class="pf"><div>制单人<br><span class="sl"></span></div><div>审核人<br><span class="sl"></span></div><div>领货人<br><span class="sl"></span></div><div>日期<br><span class="sl"></span></div></div>
     </body></html>`);
-    w.document.close(); w.onload = () => w.print();
+    w.document.close(); setTimeout(() => w.print(), 300);
   },
 
   view(id) {
@@ -1212,7 +1208,7 @@ const outbound = {
         ${r.reviewedBy?`<div style="background:var(--bg);border-radius:8px;padding:12px;grid-column:1/-1"><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">审核信息</div><div style="font-size:13px">审核人: ${r.reviewedBy} | 时间: ${r.reviewedAt||'-'}</div>${r.reviewNote?`<div style="font-size:13px;margin-top:4px;color:var(--text-muted)">审核意见: ${r.reviewNote}</div>`:''}</div>`:''}
       </div>`,
       `<button class="btn btn-ghost" onclick="closeModal()">关闭</button>
-       ${st==='已审核'?`<button class="btn btn-outline" onclick="PrintManager.printSalesOrder(${id})">📄 销售单</button><button class="btn btn-primary" onclick="outbound.printOrder(${id})">🖨 打印</button>`:''}
+       ${(st==='已审核'||st==='已完成')?`<button class="btn btn-outline" onclick="PrintManager.printSalesOrder(${id})">📄 销售单</button><button class="btn btn-primary" onclick="outbound.printOrder(${id})">🖨 打印</button>`:''}
        ${st==='待审核'&&currentUser.role==='admin'?`<button class="btn btn-primary" onclick="closeModal();outbound.approve(${id})">✅ 审核</button>`:''}`
     );
   },

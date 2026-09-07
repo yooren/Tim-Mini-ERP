@@ -78,6 +78,7 @@ const DB = {
   // 删除账套
   deleteAccount(accountId) {
     if (accountId === 'default') return false; // 不允许删除默认账套
+    if (accountId === this.getCurrentAccount()) return false; // 不允许删除当前正在使用的账套，避免数据丢失和"孤儿账套"
     let accounts = this.getAccounts();
     accounts = accounts.filter(a => a.id !== accountId);
     this.saveAccounts(accounts);
@@ -197,6 +198,7 @@ const DB = {
     this.migrateWarehouseStock();
     this.migratePermissionsDefault();
     this.migrateAuditKey();
+    this.migrateServiceTickets();
 
     // 后台异步探测/同步服务端数据库（未配置后端地址时立即退出，不影响本地模式启动速度）
     this.initSync();
@@ -479,6 +481,39 @@ const DB = {
       });
       if (changed) this.set(key, items);
     });
+  },
+
+  // 迁移旧版售后工单数据：早期演示数据用的是数字状态(0/1/3)+ ticketNo/faultDesc/handler 等旧字段名，
+  // 当前售后管理页面(eam.js)统一改用字符串状态(待派工/处理中/待配件/已完成/已关闭)+ code/problem/handlerName 等新字段名，
+  // 两套字段名不一致会导致旧工单在售后页面里无法操作、仪表盘/预警中心的统计也会漏算这些工单。
+  migrateServiceTickets() {
+    const tickets = this.get('serviceTickets');
+    if (!tickets.length) return;
+    const statusMap = { 0: '待派工', 1: '处理中', 2: '待配件', 3: '已完成', 4: '已关闭' };
+    const priorityMap = { '高': '紧急', '中': '一般', '低': '低' };
+    let changed = false;
+    tickets.forEach(t => {
+      if (typeof t.status !== 'number') return; // 已经是新字段结构，跳过
+      changed = true;
+      const goods = t.goodsId ? this.findById('goods', t.goodsId) : null;
+      t.code = t.code || t.ticketNo;
+      t.equipmentCode = t.equipmentCode || (goods && goods.code) || t.ticketNo;
+      t.equipmentName = t.equipmentName || t.goodsName || '';
+      t.location = t.location || '';
+      t.problem = t.problem || t.faultDesc || '';
+      t.handlerName = t.handlerName || t.handler || '';
+      t.handlerId = t.handlerId || null;
+      t.scheduledDate = t.scheduledDate || t.dueDate || '';
+      t.completedDate = t.completedDate || t.endDate || '';
+      t.parts = t.parts || [];
+      t.labor = t.labor || 0;
+      t.totalCost = t.totalCost || 0;
+      t.outboundCode = t.outboundCode || '';
+      t.inboundCode = t.inboundCode || '';
+      t.priority = priorityMap[t.priority] || t.priority || '一般';
+      t.status = statusMap[t.status] || '待派工';
+    });
+    if (changed) this.set('serviceTickets', tickets);
   },
 
   // 新建账套的初始化：只创建一个可登录的管理员账号 + 默认权限矩阵，
@@ -951,10 +986,10 @@ const DB = {
       customers: this.get('customers').length,
       // 售后工单统计
       totalTickets: tickets.length,
-      pendingTickets: tickets.filter(t => [0, 1].includes(t.status)).length,
-      processingTickets: tickets.filter(t => t.status === 1).length,
-      completedTickets: tickets.filter(t => t.status === 3).length,
-      overdueTickets: tickets.filter(t => [0, 1].includes(t.status) && t.dueDate && t.dueDate < today).length,
+      pendingTickets: tickets.filter(t => ['待派工', '处理中', '待配件'].includes(t.status)).length,
+      processingTickets: tickets.filter(t => t.status === '处理中').length,
+      completedTickets: tickets.filter(t => t.status === '已完成').length,
+      overdueTickets: tickets.filter(t => ['待派工', '处理中', '待配件'].includes(t.status) && t.dueDate && t.dueDate < today).length,
       // 生产统计
       totalProductionOrders: productionOrders.length,
       producingOrders: productionOrders.filter(o => o.status === '生产中').length,

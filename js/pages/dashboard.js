@@ -13,7 +13,7 @@ const dashboard = {
     const tickets = DB.get('serviceTickets') || [];
     const today = new Date().toISOString().slice(0, 10);
     const monthStart = today.slice(0, 7) + '-01';
-    stats.completedTickets = tickets.filter(t => t.status === 3 && t.endDate && t.endDate >= monthStart).length;
+    stats.completedTickets = tickets.filter(t => t.status === '已完成' && (t.completedDate || t.endDate) && (t.completedDate || t.endDate) >= monthStart).length;
 
     // 近7天趋势数据
     const trendData = this.getTrendData(inbounds, outbounds);

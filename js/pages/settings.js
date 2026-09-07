@@ -487,18 +487,18 @@ const settings = {
         <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
           <div style="font-weight:600;font-size:13px;margin-bottom:10px">系统名称</div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input id="brandSysName" value="${localStorage.getItem('wms_sysName') || '综合业务管理系统'}" placeholder="系统名称" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysName" value="${localStorage.getItem('wms_sysName') || 'Tim Mini ERP'}" placeholder="系统名称" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
             <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">登录页+侧边栏+浏览器标签</span>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
             <div style="font-weight:600;font-size:13px;margin-bottom:10px">系统版本号</div>
-            <input id="brandSysVersion" value="${localStorage.getItem('wms_sysVersion') || 'v3.0.0'}" placeholder="如 v3.0.0" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysVersion" value="${localStorage.getItem('wms_sysVersion') || 'v1.0.0'}" placeholder="如 v1.0.0" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
           </div>
           <div style="padding:12px 14px;background:var(--bg);border-radius:8px">
             <div style="font-weight:600;font-size:13px;margin-bottom:10px">品牌副标题</div>
-            <input id="brandSysSubtitle" value="${localStorage.getItem('wms_sysSubtitle') || 'Integrated business management system'}" placeholder="登录页品牌副标题" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="brandSysSubtitle" value="${localStorage.getItem('wms_sysSubtitle') || '做更顺手的软件与工具'}" placeholder="登录页品牌副标题" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -536,8 +536,8 @@ const settings = {
       <div class="card-title">ℹ️ 系统信息</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         ${[
-          ['系统名称', localStorage.getItem('wms_sysName') || '综合业务管理系统'],
-          ['系统版本', localStorage.getItem('wms_sysVersion') || 'v3.0.0'],
+          ['系统名称', localStorage.getItem('wms_sysName') || 'Tim Mini ERP'],
+          ['系统版本', localStorage.getItem('wms_sysVersion') || 'v1.0.0'],
           ['当前用户', currentUser.name],
           ['用户角色', getRoleName(currentUser.role)],
           ['浏览器', navigator.userAgent.split('Chrome')[0] ? 'Chrome' : 'Other'],
@@ -548,6 +548,9 @@ const settings = {
             <span style="color:var(--text-muted);font-size:13px">${k}</span>
             <span style="font-weight:600;font-size:14px">${v}</span>
           </div>`).join('')}
+        <div style="text-align:center;font-size:12px;color:var(--text-muted);padding:8px 4px 0;line-height:1.7">
+          做更顺手的软件与工具。从实际需求出发，把复杂的事情，做得简单一点。<br>Tim Ren Studio 工作室出品 · 联系邮箱：237826424@qq.com
+        </div>
       </div>
     </div>
     <div class="card" style="margin-top:16px">
@@ -676,7 +679,7 @@ const settings = {
 
     // 立即应用
     applyBranding();
-    audit.log('settings', '修改品牌设置', '系统设置', `系统名称: ${sysName}, 版本: ${sysVersion || 'v3.0.0'}`);
+    audit.log('settings', '修改品牌设置', '系统设置', `系统名称: ${sysName}, 版本: ${sysVersion || 'v1.0.0'}`);
     toast('品牌设置已保存并生效！', 'success');
     this.switchTab('system');
   },
@@ -1092,12 +1095,12 @@ const settings = {
       data[k] = DB.get(k);
     });
     data._backupInfo = {
-      version: '3.0.0',
+      version: '1.0.0',
       createdAt: new Date().toISOString(),
       createdBy: currentUser.username,
       type: 'full',
       accountId: DB.getCurrentAccount(),
-      accountName: (() => { const accs = DB.getAccounts(); const a = accs.find(x => x.id === DB.getCurrentAccount()); return a ? a.name : '默认账套'; })()
+      accountName: (() => { const accs = DB.getAccounts(); const a = accs.find(x => x.id === DB.getCurrentAccount()); return a ? a.name : '演示账套'; })()
     };
     
     const filename = this.getBackupFilename('_full');
@@ -1113,7 +1116,7 @@ const settings = {
       suppliers: DB.get('suppliers'),
       customers: DB.get('customers'),
       _backupInfo: {
-        version: '3.0.0',
+        version: '1.0.0',
         createdAt: new Date().toISOString(),
         createdBy: currentUser.username,
         type: 'goods'
@@ -1131,7 +1134,7 @@ const settings = {
       outbounds: DB.get('outbounds'),
       inventories: DB.get('inventories'),
       _backupInfo: {
-        version: '3.0.0',
+        version: '1.0.0',
         createdAt: new Date().toISOString(),
         createdBy: currentUser.username,
         type: 'records'
@@ -1575,7 +1578,7 @@ const settings = {
                 ${a.id !== 'default' ? `
                   <button class="btn btn-outline btn-sm" onclick="settings.openEditAccount('${a.id}')">✏️</button>
                   <button class="btn btn-outline btn-sm" onclick="settings.exportAccountData('${a.id}')">📤</button>
-                  <button class="btn btn-danger btn-sm" onclick="settings.deleteAccountConfirm('${a.id}')">🗑</button>
+                  ${!isCurrent ? `<button class="btn btn-danger btn-sm" onclick="settings.deleteAccountConfirm('${a.id}')">🗑</button>` : ''}
                 ` : `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;font-size:11px">演示</button>`}
               </div>
             </div>`;
@@ -1664,6 +1667,7 @@ const settings = {
   },
 
   confirmSwitchAccount(id) {
+    if (currentUser) SessionGuard.release(DB.getCurrentAccount()); // 先释放旧账套的并发名额，再切换，避免名额被错误挂在新账套下
     DB.switchAccount(id);
     audit.log('settings', '切换账套', id, '');
     closeModal();
@@ -1694,9 +1698,10 @@ const settings = {
   },
 
   confirmDeleteAccount(id) {
-    DB.deleteAccount(id);
-    audit.log('settings', '删除账套', id, '');
+    const ok = DB.deleteAccount(id);
     closeModal();
+    if (!ok) { toast('该账套当前正在使用中或为默认账套，无法删除', 'error'); return; }
+    audit.log('settings', '删除账套', id, '');
     toast('账套已删除', 'warning');
     this.switchTab('accountSets');
   },
@@ -2170,10 +2175,10 @@ const settings = {
     const raw = localStorage.getItem('wms_printSettings');
     if (raw) { try { return JSON.parse(raw); } catch(e) {} }
     return {
-      companyName: localStorage.getItem('wms_sysName') || '综合业务管理系统',
-      companySub: '综合业务管理系统 ERP ' + (localStorage.getItem('wms_sysVersion') || 'v3.0').replace(/^v/, ''),
+      companyName: localStorage.getItem('wms_sysName') || 'Tim Mini ERP',
+      companySub: 'Tim Mini ERP ' + (localStorage.getItem('wms_sysVersion') || 'v1.0').replace(/^v/, ''),
       showLogo: true,
-      logoUrl: 'LOGO.png',
+      logoUrl: 'LOGO.svg',
       paperSize: 'A4',
       fontSize: 14,
       showFooter: true,
@@ -2190,7 +2195,7 @@ const settings = {
       companyName: document.getElementById('psCompanyName').value.trim(),
       companySub: document.getElementById('psCompanySub').value.trim(),
       showLogo: document.getElementById('psShowLogo').checked,
-      logoUrl: document.getElementById('psLogoUrl').value.trim() || 'LOGO.png',
+      logoUrl: document.getElementById('psLogoUrl').value.trim() || 'LOGO.svg',
       paperSize: document.getElementById('psPaperSize').value,
       fontSize: parseInt(document.getElementById('psFontSize').value),
       showFooter: document.getElementById('psShowFooter').checked,
@@ -2225,7 +2230,7 @@ const settings = {
           </div>
           <div class="form-item">
             <label>Logo图片路径</label>
-            <input id="psLogoUrl" value="${s.logoUrl}" placeholder="如: LOGO.png">
+            <input id="psLogoUrl" value="${s.logoUrl}" placeholder="如: LOGO.svg">
           </div>
           <div class="form-item" style="display:flex;align-items:flex-end;gap:12px">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer">

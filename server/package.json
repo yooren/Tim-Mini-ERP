@@ -1,7 +1,7 @@
 {
-  "name": "wms-server",
+  "name": "tim-mini-erp-server",
   "version": "1.0.0",
-  "description": "智能业务管理系统 - 服务端数据库后端（Node.js + Express，默认 SQLite，可选 MySQL）",
+  "description": "Tim Mini ERP - 服务端数据库后端（Node.js + Express，默认 SQLite，可选 MySQL）· Tim Ren Studio 工作室出品",
   "private": true,
   "main": "server.js",
   "scripts": {

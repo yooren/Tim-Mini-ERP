@@ -72,7 +72,7 @@ const analytics = {
     const goods = DB.get('goods') || [];
     
     // 本月销售数据（只统计销售出库和设备出库）
-    const monthOut = outbounds.filter(o => o.status === '已审核' && ['销售出库','设备出库'].includes(o.type) && (o.date || '').startsWith(month));
+    const monthOut = outbounds.filter(o => (o.status === '已审核' || o.status === '已完成') && (!o.type || ['销售出库','设备出库'].includes(o.type)) && (o.date || '').startsWith(month));
     const totalRevenue = monthOut.reduce((s, o) => s + (o.total || 0), 0);
     const totalOrders = monthOut.length;
     const totalQuantity = monthOut.reduce((s, o) => s + (o.qty || 0), 0);
@@ -110,7 +110,7 @@ const analytics = {
       let targetYear = y;
       if (targetMonth <= 0) { targetMonth += 12; targetYear--; }
       const tm = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
-      const tmData = outbounds.filter(o => o.status === '已审核' && ['销售出库','设备出库'].includes(o.type) && (o.date || '').startsWith(tm));
+      const tmData = outbounds.filter(o => (o.status === '已审核' || o.status === '已完成') && (!o.type || ['销售出库','设备出库'].includes(o.type)) && (o.date || '').startsWith(tm));
       trendData.push({
         month: tm,
         amount: tmData.reduce((s, o) => s + (o.total || 0), 0),
@@ -121,7 +121,7 @@ const analytics = {
     
     // 销售类型分布（所有出库类型）
     const typeStats = {};
-    outbounds.filter(o => o.status === '已审核' && (o.date || '').startsWith(month)).forEach(o => {
+    outbounds.filter(o => (o.status === '已审核' || o.status === '已完成') && (o.date || '').startsWith(month)).forEach(o => {
       const type = o.type || '销售出库';
       if (!typeStats[type]) typeStats[type] = { amount: 0, count: 0 };
       typeStats[type].amount += o.total || 0;
@@ -263,7 +263,7 @@ const analytics = {
       let tm = m - i, ty = y;
       if (tm <= 0) { tm += 12; ty--; }
       const monthStr = `${ty}-${String(tm).padStart(2, '0')}`;
-      const data = outbounds.filter(o => o.status === '已审核' && (o.date || '').startsWith(monthStr));
+      const data = outbounds.filter(o => (o.status === '已审核' || o.status === '已完成') && (o.date || '').startsWith(monthStr));
       csv += `${monthStr},${data.length},${data.reduce((s, o) => s + (o.total || 0), 0)}\n`;
     }
     downloadCSV(csv, `销售趋势_${this.currentMonth}.csv`);
@@ -549,7 +549,7 @@ const analytics = {
     let overdueCustomers = 0;
     let lowCreditCustomers = 0;
     const customerCredits = customers.map(c => {
-      const cOrders = orders.filter(o => o.customerId === c.id && o.status === '已审核');
+      const cOrders = orders.filter(o => o.customerId === c.id && (o.status === '已审核' || o.status === '已完成'));
       const totalAmount = cOrders.reduce((s, o) => s + (o.total || 0), 0);
       const orderCount = cOrders.length;
       // 计算信用评分（基于欠款、逾期次数等）
@@ -778,7 +778,7 @@ const analytics = {
     const c = DB.findById('customers', id);
     if (!c) return;
     
-    const orders = DB.get('outbounds')?.filter(o => o.customerId === id && o.status === '已审核') || [];
+    const orders = DB.get('outbounds')?.filter(o => o.customerId === id && (o.status === '已审核' || o.status === '已完成')) || [];
     
     openModal(`交易明细 - ${c.name}`, `
       <div style="max-height:60vh;overflow-y:auto">
@@ -857,7 +857,7 @@ const analytics = {
     const customers = DB.get('customers') || [];
     let csv = '\uFEFF客户名称,联系人,电话,累计交易,交易次数,信用评分,信用等级,逾期天数\n';
     customers.forEach(c => {
-      const orders = DB.get('outbounds')?.filter(o => o.customerId === c.id && o.status === '已审核') || [];
+      const orders = DB.get('outbounds')?.filter(o => o.customerId === c.id && (o.status === '已审核' || o.status === '已完成')) || [];
       const totalAmount = orders.reduce((s, o) => s + (o.total || 0), 0);
       const score = Math.max(0, Math.min(100, 100 - (c.overdueDays || 0) * 2 - (c.overdueCount || 0) * 5));
       const level = score >= 80 ? 'A' : score >= 60 ? 'B' : score >= 40 ? 'C' : 'D';

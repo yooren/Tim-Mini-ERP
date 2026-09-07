@@ -347,15 +347,15 @@ const quality = {
     if (result === '合格') {
       const goods = DB.findById('goods', r.goodsId);
       if (goods) {
-        DB.update('goods', r.goodsId, { stock: (goods.stock || 0) + r.inspectQty });
+        DB.update('goods', r.goodsId, { stock: (goods.stock || 0) + qualified });
         DB.add('inbounds', {
           inboundCode: DB.genCode('RK'),
           goodsId: r.goodsId,
           goodsName: r.goodsName,
-          qty: r.inspectQty,
+          qty: qualified,
           unit: goods.unit || '件',
           price: goods.cost || 0,
-          total: (goods.cost || 0) * r.inspectQty,
+          total: (goods.cost || 0) * qualified,
           type: '采购入库',
           supplier: r.supplierName,
           status: '已完成',
@@ -1301,6 +1301,7 @@ const quality = {
     if (!r) return;
     const content = this.renderCertPrint(r);
     const win = window.open('', '_blank');
+    if (!win) { toast('浏览器拦截了打印预览窗口，请允许该网站的弹窗后重试', 'error'); return; }
     win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>合格证 - ${r.certificateNo}</title>
       <style>
         body{margin:0;padding:40px;font-family:SimSun,serif;font-size:14px;color:#000}
