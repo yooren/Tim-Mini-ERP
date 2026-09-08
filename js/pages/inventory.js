@@ -24,15 +24,16 @@ const inventory = {
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th>盘点单号</th><th>盘点日期</th><th>操作员</th>
+              <th>盘点单号</th><th>盘点日期</th><th>仓库</th><th>操作员</th>
               <th>商品数</th><th>差异数量</th><th>状态</th><th>备注</th><th>操作</th>
             </tr></thead>
             <tbody>
-              ${records.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">暂无盘点记录</td></tr>' :
+              ${records.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted)">暂无盘点记录</td></tr>' :
                 records.reverse().map(r => `
                   <tr>
                     <td><span style="color:var(--primary);font-family:monospace;font-size:12px">${r.code}</span></td>
                     <td>${r.date}</td>
+                    <td>${r.warehouseName || '-'}</td>
                     <td>${r.operator}</td>
                     <td>${r.items} 种</td>
                     <td>
@@ -113,9 +114,11 @@ const inventory = {
 
   startNew() {
     if (!hasPerm('inventory', 'create')) { toast('没有新建权限', 'error'); return; }
-    const goodsList = DB.get('goods');
+    const warehouses = DB.get('warehouses');
+    if (!warehouses.length) { toast('请先在仓库管理里创建至少一个仓库', 'error'); return; }
     const code = DB.genCode('IC');
     const today = new Date().toISOString().slice(0,10);
+    const defaultWid = warehouses[0].id;
 
     openModal('发起库存盘点', `
       <div style="background:var(--primary-light);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px">
@@ -124,36 +127,54 @@ const inventory = {
         &nbsp;|&nbsp; <strong>操作员：</strong>${currentUser.name}
       </div>
       <div class="form-item" style="margin-bottom:16px">
+        <label>盘点仓库 *</label>
+        <select id="icWarehouse" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg)" onchange="inventory.onWarehouseChange()">
+          ${warehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('')}
+        </select>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">盘点按单个仓库进行，账面库存取该仓库的分仓库存，不是商品总库存</div>
+      </div>
+      <div class="form-item" style="margin-bottom:16px">
         <label>盘点备注</label>
         <input id="icNote" placeholder="如：月末例行盘点、专项盘点等">
       </div>
       <div class="table-wrap" style="max-height:360px;overflow-y:auto">
         <table>
           <thead><tr>
-            <th>商品名称</th><th>账面库存</th><th>实际数量</th><th>差异</th>
+            <th>商品名称</th><th>账面库存（该仓库）</th><th>实际数量</th><th>差异</th>
           </tr></thead>
-          <tbody id="checkItems">
-            ${goodsList.map((g, i) => `
-              <tr>
-                <td>
-                  <div style="font-weight:600;font-size:13px">${g.name}</div>
-                  <div style="font-size:11px;color:var(--text-muted)">${g.code}</div>
-                </td>
-                <td style="font-weight:700;color:var(--primary)">${g.stock} ${g.unit}</td>
-                <td>
-                  <input type="number" id="actualQty_${g.id}" value="${g.stock}" min="0"
-                    style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px"
-                    oninput="inventory.calcDiff(${g.id},${g.stock})">
-                </td>
-                <td id="diff_${g.id}" style="font-weight:600;color:var(--text-muted)">0</td>
-              </tr>`).join('')}
-          </tbody>
+          <tbody id="checkItems">${this.renderCheckItemsRows(defaultWid)}</tbody>
         </table>
       </div>`,
       `<button class="btn btn-ghost" onclick="closeModal()">取消</button>
        <button class="btn btn-warning" onclick="inventory.saveCheck('${code}','${today}')">保存盘点结果</button>`,
       true
     );
+  },
+
+  renderCheckItemsRows(warehouseId) {
+    const goodsList = DB.get('goods');
+    return goodsList.map(g => {
+      const book = (g.warehouseStock && g.warehouseStock[warehouseId]) || 0;
+      return `
+              <tr>
+                <td>
+                  <div style="font-weight:600;font-size:13px">${g.name}</div>
+                  <div style="font-size:11px;color:var(--text-muted)">${g.code}</div>
+                </td>
+                <td style="font-weight:700;color:var(--primary)">${book} ${g.unit}</td>
+                <td>
+                  <input type="number" id="actualQty_${g.id}" value="${book}" min="0"
+                    style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px"
+                    oninput="inventory.calcDiff(${g.id},${book})">
+                </td>
+                <td id="diff_${g.id}" style="font-weight:600;color:var(--text-muted)">0</td>
+              </tr>`;
+    }).join('');
+  },
+
+  onWarehouseChange() {
+    const wid = +document.getElementById('icWarehouse').value;
+    document.getElementById('checkItems').innerHTML = this.renderCheckItemsRows(wid);
   },
 
   calcDiff(gid, book) {
@@ -165,15 +186,20 @@ const inventory = {
   },
 
   saveCheck(code, date) {
+    const warehouseId = +document.getElementById('icWarehouse').value;
+    const warehouse = DB.findById('warehouses', warehouseId);
     const goodsList = DB.get('goods');
     let totalDiff = 0;
     goodsList.forEach(g => {
       const el = document.getElementById(`actualQty_${g.id}`);
       if (!el) return;
+      const book = (g.warehouseStock && g.warehouseStock[warehouseId]) || 0;
       const actual = +el.value;
-      const diff = actual - g.stock;
+      const diff = actual - book;
       if (diff !== 0) {
-        DB.update('goods', g.id, { stock: actual });
+        const ws = { ...(g.warehouseStock || {}), [warehouseId]: actual };
+        const newTotal = Object.values(ws).reduce((s, v) => s + (v || 0), 0);
+        DB.update('goods', g.id, { warehouseStock: ws, stock: newTotal });
         totalDiff += diff;
       }
     });
@@ -181,6 +207,8 @@ const inventory = {
     DB.add('inventories', {
       code,
       date,
+      warehouseId,
+      warehouseName: warehouse ? warehouse.name : '',
       operator: currentUser.username,
       status: '已完成',
       note: document.getElementById('icNote').value,
@@ -188,7 +216,7 @@ const inventory = {
       diff: totalDiff
     });
 
-    audit.log('inventory', '盘点', code, `盘点${goodsList.length}种商品, 差异: ${totalDiff > 0 ? '+' : ''}${totalDiff}`);
+    audit.log('inventory', '盘点', code, `仓库: ${warehouse ? warehouse.name : warehouseId}, 盘点${goodsList.length}种商品, 差异: ${totalDiff > 0 ? '+' : ''}${totalDiff}`);
     closeModal();
     toast(`盘点完成！共盘点 ${goodsList.length} 种商品，差异 ${totalDiff > 0 ? '+' : ''}${totalDiff}`, 'success');
     showPage('inventory');
@@ -203,6 +231,7 @@ const inventory = {
         ${[
           ['盘点单号', `<code style="color:var(--primary)">${r.code}</code>`],
           ['盘点日期', r.date],
+          ['盘点仓库', r.warehouseName || '-'],
           ['操作员', r.operator],
           ['状态', r.status === '已完成' ? '<span class="badge badge-success">已完成</span>' : '<span class="badge badge-warning">进行中</span>'],
           ['商品总数', `${r.items} 种`],

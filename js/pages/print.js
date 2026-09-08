@@ -167,6 +167,7 @@ const PrintManager = {
         </div>
       </div>
       <div class="print-meta">
+        <div><span class="label">盘点仓库：</span>${r.warehouseName || '-'}</div>
         <div><span class="label">盘点人：</span>${r.operator}</div>
         <div><span class="label">盘点商品数：</span>${r.items} 种</div>
         <div><span class="label">差异数量：</span><span style="color:${r.diff > 0 ? '#16a34a' : r.diff < 0 ? '#ef4444' : '#333'};font-weight:600">${r.diff > 0 ? '+' : ''}${r.diff}</span></div>

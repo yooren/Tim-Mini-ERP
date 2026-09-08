@@ -169,6 +169,31 @@ const mes = {
     const reportQty = qualified + scrap;
     const newCompleted = Math.min(op.planQty, op.completedQty + qualified);
 
+    const order = DB.findById('productionOrders', op.orderId);
+    const allProcesses = DB.get('orderProcesses').filter(p => p.orderId === op.orderId);
+    const minSeq = allProcesses.length ? Math.min(...allProcesses.map(p => p.sequence || 0)) : 0;
+
+    // 领料消耗：只在第一道工序（投料/组装工序）报工产生合格品时，按 BOM 用量扣减原材料库存，
+    // 避免同一批产品依次经过多道后续工序（测试、包装...）时被重复扣料
+    if (qualified > 0 && order && (op.sequence || 0) === minSeq) {
+      const bom = DB.findById('boms', order.bomId);
+      if (bom && bom.items && bom.items.length) {
+        for (const item of bom.items) {
+          const material = DB.findById('goods', item.materialId);
+          const need = item.qty * qualified * (1 + (item.scrapRate || 0));
+          if (!material || material.stock < need) {
+            toast(`物料库存不足，无法报工：${item.materialName} 还需 ${need.toFixed(2)}，现有库存 ${material ? material.stock : 0}`, 'error');
+            return;
+          }
+        }
+        bom.items.forEach(item => {
+          const material = DB.findById('goods', item.materialId);
+          const need = item.qty * qualified * (1 + (item.scrapRate || 0));
+          DB.update('goods', item.materialId, { stock: material.stock - need });
+        });
+      }
+    }
+
     // 更新工序
     DB.update('orderProcesses', orderProcessId, {
       completedQty: newCompleted,
@@ -190,7 +215,6 @@ const mes = {
 
     // 更新工单完成数：取"最后一道工序"的完成数，代表已走完全部工序的成品数量，
     // 不能把各工序的 completedQty 直接相加（同一件产品会依次经过多道工序，相加会重复计数）
-    const order = DB.findById('productionOrders', op.orderId);
     if (order) {
       const orderProcesses = DB.get('orderProcesses').filter(p => p.orderId === op.orderId);
       const maxSeq = Math.max(...orderProcesses.map(p => p.sequence || 0));
