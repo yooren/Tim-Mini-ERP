@@ -61,7 +61,7 @@ const settings = {
         ${this.activeTab===k?'background:var(--primary);color:white;box-shadow:0 2px 8px rgba(79,110,247,0.4)':'background:transparent;color:var(--text-muted)'}"
       >${v}</button>`).join('');
     document.getElementById('settingsContent').innerHTML = this.renderTabContent();
-    if (tab === 'system' && DB._syncEnabled) this.refreshDbConfigCurrentType();
+    if (tab === 'system' && DB._syncEnabled) { this.refreshDbConfigCurrentType(); this.loadUpgradeStatus(); }
   },
 
   // 查询后端当前实际使用的数据库类型，回填到"后端数据库类型配置"下拉框，
@@ -76,6 +76,132 @@ const settings = {
         this.toggleDbConfigFields();
       }
     } catch (e) {}
+  },
+
+  // ===== 版本升级（本地上传升级包，参照传统进销存软件的做法：不依赖联网检查更新） =====
+  async loadUpgradeStatus() {
+    const verEl = document.getElementById('upgradeCurrentVersion');
+    if (!verEl) return;
+    try {
+      const res = await fetch(`${DB.getApiBase()}/api/admin/upgrade-status`);
+      const data = await res.json();
+      verEl.textContent = data.currentVersion || '-';
+      this._upgradeBackups = data.backups || [];
+      this.renderUpgradeBackupList();
+    } catch (e) {
+      verEl.textContent = '获取失败';
+      const listEl = document.getElementById('upgradeBackupList');
+      if (listEl) listEl.innerHTML = '<div style="padding:8px 0">获取升级历史失败：' + e.message + '</div>';
+    }
+  },
+
+  renderUpgradeBackupList() {
+    const listEl = document.getElementById('upgradeBackupList');
+    if (!listEl) return;
+    const backups = this._upgradeBackups || [];
+    if (!backups.length) { listEl.innerHTML = '<div style="padding:8px 0">暂无升级记录</div>'; return; }
+    listEl.innerHTML = `
+      <div class="table-wrap"><table>
+        <thead><tr><th>时间</th><th>版本变化</th><th>操作人</th><th>操作</th></tr></thead>
+        <tbody>${backups.map(b => `
+          <tr>
+            <td style="font-size:12px">${(b.appliedAt || '').replace('T', ' ').slice(0, 19)}</td>
+            <td style="font-size:12px">${b.fromVersion || '-'} → ${b.toVersion || '-'}</td>
+            <td style="font-size:12px">${b.operator || '-'}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="settings.confirmRollback('${b.stamp}')">回滚到此前</button></td>
+          </tr>`).join('')}</tbody>
+      </table></div>`;
+  },
+
+  selectUpgradeFile() {
+    document.getElementById('upgradeFileInput').click();
+  },
+
+  handleUpgradeFile(file) {
+    this._upgradeFile = file || null;
+    document.getElementById('upgradeFilePath').value = file ? file.name : '';
+    document.getElementById('applyUpgradeBtn').disabled = !file;
+  },
+
+  confirmApplyUpgrade() {
+    if (!this._upgradeFile) return;
+    openModal('确认应用升级包',
+      `<div style="text-align:center;padding:20px 0">
+        <div style="width:60px;height:60px;background:rgba(59,110,255,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">⬆️</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px">确定要应用「${this._upgradeFile.name}」这个升级包吗？</div>
+        <div style="padding:10px;background:#fef3c7;border-radius:8px;font-size:12px;color:#92400e;margin-top:8px">
+          会替换程序文件（不影响账套业务数据），应用前自动备份，可随时回滚
+        </div>
+      </div>`,
+      `<button class="btn btn-ghost" onclick="closeModal()">取消</button>
+       <button class="btn btn-primary" onclick="settings.doApplyUpgrade()">确定应用</button>`
+    );
+  },
+
+  async doApplyUpgrade() {
+    closeModal();
+    const file = this._upgradeFile;
+    if (!file) return;
+    const msgEl = document.getElementById('upgradeMsg');
+    msgEl.classList.remove('hidden', 'success', 'error');
+    msgEl.textContent = '正在上传并应用升级包...';
+    const btn = document.getElementById('applyUpgradeBtn');
+    if (btn) btn.disabled = true;
+    try {
+      const form = new FormData();
+      form.append('package', file);
+      form.append('operator', currentUser ? currentUser.username : '');
+      const res = await fetch(`${DB.getApiBase()}/api/admin/upgrade`, { method: 'POST', body: form });
+      const data = await res.json();
+      if (!data.ok) {
+        msgEl.classList.add('error');
+        msgEl.textContent = '应用失败：' + (data.error || '未知错误');
+        if (btn) btn.disabled = false;
+        return;
+      }
+      msgEl.classList.add('success');
+      msgEl.innerHTML = `已升级到 ${data.version}，<b>需要手动重启后端服务后才会生效</b>` +
+        (data.releaseNotes ? `<br>更新说明：${data.releaseNotes}` : '') +
+        (data.dependenciesChanged ? `<br><span style="color:#d97706">⚠️ 检测到依赖有变化，重启前请先在 server 目录手动执行一次 npm install</span>` : '');
+      toast('升级包已应用，请手动重启后端服务', 'success');
+      this.handleUpgradeFile(null);
+      this.loadUpgradeStatus();
+    } catch (e) {
+      msgEl.classList.add('error');
+      msgEl.textContent = '请求失败：' + e.message;
+      if (btn) btn.disabled = false;
+    }
+  },
+
+  confirmRollback(stamp) {
+    const b = (this._upgradeBackups || []).find(x => x.stamp === stamp);
+    openModal('确认回滚',
+      `<div style="text-align:center;padding:20px 0">
+        <div style="width:60px;height:60px;background:rgba(239,68,68,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">⚠️</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px">确定要回滚到「${b ? b.fromVersion : ''}」这个版本吗？</div>
+        <div style="padding:10px;background:#fef3c7;border-radius:8px;font-size:12px;color:#92400e;margin-top:8px">
+          会把程序文件还原到这次升级之前的状态，同样需要重启后端服务才会生效
+        </div>
+      </div>`,
+      `<button class="btn btn-ghost" onclick="closeModal()">取消</button>
+       <button class="btn btn-danger" onclick="settings.doRollback('${stamp}')">确定回滚</button>`
+    );
+  },
+
+  async doRollback(stamp) {
+    closeModal();
+    try {
+      const res = await fetch(`${DB.getApiBase()}/api/admin/upgrade/rollback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stamp, operator: currentUser ? currentUser.username : '' })
+      });
+      const data = await res.json();
+      if (!data.ok) { toast('回滚失败：' + (data.error || '未知错误'), 'error'); return; }
+      toast('已回滚，请手动重启后端服务', 'success');
+      this.loadUpgradeStatus();
+    } catch (e) {
+      toast('请求失败：' + e.message, 'error');
+    }
   },
 
   renderTabContent() {
@@ -443,6 +569,32 @@ const settings = {
         <button class="btn btn-primary" onclick="settings.applyDbConfig()">💾 保存并应用（自动重启）</button>
       </div>
       <div id="dbConfigMsg" class="license-activate-msg hidden" style="margin-top:10px"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🔄 版本升级</div>
+      <div style="padding:10px 14px;background:rgba(59,130,246,0.04);border:1px solid rgba(59,130,246,0.12);border-radius:8px;font-size:12px;color:var(--text-muted);margin-bottom:14px">
+        💡 升级包由软件出品方（Tim Ren Studio 工作室）打包提供，不需要联网，本地上传即可。
+        应用前会自动备份当前的程序文件，出问题可以随时一键回滚。应用完成后需要<b>手动重启一次后端服务</b>才会生效
+        （重新运行"一键启动"脚本，或重新执行 <code>node server.js</code>）。
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg);border-radius:8px;margin-bottom:12px">
+        <span style="color:var(--text-muted);font-size:13px">当前版本</span>
+        <span style="font-weight:600;font-size:14px" id="upgradeCurrentVersion">加载中...</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="upgradeFilePath" placeholder='点击"选择升级包"选择 .zip 文件' readonly style="flex:1;cursor:pointer" onclick="settings.selectUpgradeFile()">
+        <button class="btn btn-outline" onclick="settings.selectUpgradeFile()" style="white-space:nowrap">📂 选择升级包</button>
+        <button class="btn btn-primary" id="applyUpgradeBtn" onclick="settings.confirmApplyUpgrade()" disabled style="white-space:nowrap">⬆️ 应用升级</button>
+      </div>
+      <input type="file" id="upgradeFileInput" accept=".zip" style="display:none" onchange="settings.handleUpgradeFile(this.files[0])">
+      <div id="upgradeMsg" class="license-activate-msg hidden" style="margin-top:10px"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="justify-content:space-between">
+        <span>📜 升级历史（可回滚）</span>
+        <button class="btn btn-ghost" style="padding:2px 10px;font-size:12px" onclick="settings.loadUpgradeStatus()">刷新</button>
+      </div>
+      <div id="upgradeBackupList" style="font-size:12px;color:var(--text-muted)">加载中...</div>
     </div>
     ` : ''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">

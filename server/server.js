@@ -9,8 +9,11 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const { spawn } = require('child_process');
+const fs = require('fs');
+const multer = require('multer');
 const db = require('./db');
 const { writeEnvUpdates } = require('./env-config');
+const upgrade = require('./upgrade');
 
 const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -95,6 +98,54 @@ app.put('/api/config/:key', asyncRoute(async (req, res) => {
   if (value === undefined) return res.status(400).json({ error: 'value_required' });
   await db.setConfig(req.params.key, value);
   res.json({ ok: true });
+}));
+
+// ===== 本地升级包（参照传统进销存软件的做法：离线上传升级包，不依赖外网检查更新） =====
+// 跟其它 admin 接口一样没有做身份校验，前端只在管理员角色下展示这个入口，安全模型
+// 跟项目一贯的"局域网内网自用"定位一致；详见 upgrade.js 顶部注释。
+// 注意：这几个路由必须注册在下面 /api/:accountId/:collection 这类通配路由之前——
+// Express 按注册顺序匹配，晚注册的话 GET /api/admin/upgrade-status 会先被
+// /api/:accountId/:collection 当成 accountId="admin" 接住，报 account_not_found。
+const upgradeUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      fs.mkdirSync(upgrade.TMP_DIR, { recursive: true });
+      cb(null, upgrade.TMP_DIR);
+    },
+    filename: (req, file, cb) => cb(null, `upload-${Date.now()}.zip`)
+  }),
+  limits: { fileSize: 300 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => cb(null, /\.zip$/i.test(file.originalname))
+});
+
+app.get('/api/admin/upgrade-status', asyncRoute(async (req, res) => {
+  res.json({
+    currentVersion: await upgrade.getCurrentVersion(db),
+    backups: await upgrade.listBackups()
+  });
+}));
+
+app.post('/api/admin/upgrade', upgradeUpload.single('package'), asyncRoute(async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: '请选择升级包（.zip）文件' });
+  try {
+    const result = await upgrade.applyPackage(req.file.path, req.body.operator || '', db);
+    res.json({ ok: true, message: '升级包已应用，需要重启服务后生效', ...result });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message || 'internal_error' });
+  } finally {
+    fs.unlink(req.file.path, () => {});
+  }
+}));
+
+app.post('/api/admin/upgrade/rollback', asyncRoute(async (req, res) => {
+  const { stamp, operator } = req.body || {};
+  if (!stamp) return res.status(400).json({ error: '请指定要回滚到的备份' });
+  try {
+    const result = await upgrade.rollback(stamp, operator || '', db);
+    res.json({ ok: true, message: '已回滚，需要重启服务后生效', ...result });
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message || 'internal_error' });
+  }
 }));
 
 // ===== 账套内集合批量同步（前端初始化/切换账套时一次性拉取全部集合） =====
