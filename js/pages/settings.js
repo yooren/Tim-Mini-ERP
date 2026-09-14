@@ -417,6 +417,16 @@ const settings = {
           <div style="width:50%;height:6px;background:#e2e8f0;border-radius:2px;margin-top:4px;box-shadow:0 0 6px rgba(255,255,255,0.6)"></div>
         </div>
       </div>`
+    },
+    {
+      key: 'gold', name: '典雅通栏 · 暖金', desc: '品牌区从侧边面板改为顶部横幅，单卡片纵向布局，暖金配色',
+      mockup: `<div style="height:70px;border-radius:8px;overflow:hidden;border:1px solid var(--border);display:flex;flex-direction:column">
+        <div style="height:22px;background:linear-gradient(120deg,#92400e,#d97706,#f59e0b)"></div>
+        <div style="flex:1;background:#fffdf9;display:flex;flex-direction:column;justify-content:center;padding:6px 10px;gap:4px">
+          <div style="width:60%;height:5px;background:#fde8d0;border-radius:2px"></div>
+          <div style="width:80%;height:8px;background:#d97706;border-radius:2px;margin-top:4px"></div>
+        </div>
+      </div>`
     }
   ],
 
@@ -494,6 +504,56 @@ const settings = {
     if (exitBtn) exitBtn.remove();
     // 恢复为已保存的正式风格，避免预览态残留
     applyLoginStyle();
+  },
+
+  // ==================== 主界面配色 ====================
+  // 登录成功后系统主界面（侧边栏/卡片/按钮等）的整体配色，和上面的"登录页风格"是两回事：
+  // 登录页风格只影响登录前看到的页面，这里影响登录后天天在用的主界面。
+  // 具体配色变量定义见 css/main.css 里的 .theme-* 规则，颜色预览用的十六进制值需要跟那边保持一致。
+  _mainThemeSwatches: {
+    'theme-default': ['#3b6eff', '#0f172a'],
+    'theme-business': ['#1e40af', '#0f172a'],
+    'theme-green': ['#059669', '#064e3b'],
+    'theme-purple': ['#7c3aed', '#2e1065'],
+    'theme-orange': ['#ea580c', '#431407'],
+    'theme-dark': ['#60a5fa', '#0a0a0a'],
+    'theme-pink': ['#ec4899', '#831843'],
+    'theme-teal': ['#0d9488', '#042f2e']
+  },
+
+  renderMainThemeCard() {
+    const current = ThemeManager.current;
+    return `
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">🖌 主界面配色</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">登录后系统主界面（侧边栏、按钮、图表等）的整体配色，点击即可切换，立即生效，不影响登录页风格。</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+        ${ThemeManager.themes.map(t => {
+          const [primary, sidebar] = this._mainThemeSwatches[t.id] || ['#3b6eff', '#0f172a'];
+          const active = current === t.id;
+          return `
+          <div onclick="settings.applyMainTheme('${t.id}')"
+            style="border:2px solid ${active ? 'var(--primary)' : 'var(--border)'};border-radius:12px;padding:12px;cursor:pointer;transition:all 0.2s"
+            onmouseenter="this.style.borderColor='var(--primary)'" onmouseleave="this.style.borderColor='${active ? 'var(--primary)' : 'var(--border)'}'">
+            <div style="display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+              <div style="width:34%;background:${sidebar}"></div>
+              <div style="flex:1;background:${primary}"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+              <span style="font-size:14px">${t.icon}</span>
+              <span style="font-weight:600;font-size:12px">${t.name}</span>
+              ${active ? '<span style="color:var(--primary);font-weight:600;font-size:11px;margin-left:auto">✓ 使用中</span>' : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  },
+
+  applyMainTheme(themeId) {
+    ThemeManager.apply(themeId);
+    toast(`主界面配色已切换为「${ThemeManager.themes.find(t => t.id === themeId)?.name || themeId}」`, 'success');
+    this.switchTab('system');
   },
 
   renderSystem() {
@@ -684,6 +744,7 @@ const settings = {
       </div>
     </div>
     ${this.renderLoginStyleCard()}
+    ${this.renderMainThemeCard()}
     <div class="card" style="margin-top:16px">
       <div class="card-title">ℹ️ 系统信息</div>
       <div style="display:flex;flex-direction:column;gap:10px">

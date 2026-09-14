@@ -15,7 +15,8 @@ const ThemeManager = {
     { id: 'theme-purple', name: '优雅紫', icon: '💜' },
     { id: 'theme-orange', name: '温暖橙', icon: '🧡' },
     { id: 'theme-dark', name: '暗夜黑', icon: '🌙' },
-    { id: 'theme-pink', name: '粉色浪漫', icon: '💗' }
+    { id: 'theme-pink', name: '粉色浪漫', icon: '💗' },
+    { id: 'theme-teal', name: '湖光青', icon: '🩵' }
   ],
   
   current: 'theme-default',
@@ -606,6 +607,9 @@ function togglePwd() {
 function initApp() {
   // 应用品牌自定义
   applyBranding();
+
+  // 应用上次保存的主界面配色（未调用会导致刷新页面后配色丢回默认值）
+  ThemeManager.init();
 
   // 显示当前账套名称
   const accEl = document.getElementById('sidebarAccountName');
@@ -1430,12 +1434,13 @@ function applyBranding() {
   applyLoginStyle();
 }
 
-// 登录页风格：'split'（蓝色经典分屏，默认）/ 'centered'（绿色简约居中）/ 'dark'（黑白科技暗色）
+// 登录页风格：'split'（蓝色经典分屏，默认）/ 'centered'（绿色简约居中）/ 'dark'（黑白科技暗色）/
+// 'gold'（暖金典雅通栏，品牌区在顶部横幅而不是侧边面板）
 // 同一个 class 同时应用到开机欢迎页(#welcomePage)和登录表单页(#loginPage)，
 // 保证"开机动画 → 登录页"是同一套配色，不会切换风格后中途跳色。
 function applyLoginStyle(styleKey) {
   const key = styleKey || localStorage.getItem('wms_loginStyle') || 'split';
-  const styleClasses = ['login-style-split', 'login-style-centered', 'login-style-dark'];
+  const styleClasses = ['login-style-split', 'login-style-centered', 'login-style-dark', 'login-style-gold'];
   [document.getElementById('welcomePage'), document.getElementById('loginPage')].forEach(el => {
     if (!el) return;
     el.classList.remove(...styleClasses);

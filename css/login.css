@@ -973,6 +973,110 @@
   box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 50px rgba(255,255,255,0.1);
 }
 
+/* ========== 风格四：典雅通栏 · 暖金（单卡片，品牌区从左侧面板改为顶部横幅，布局与前三种都不同） ========== */
+#loginPage.login-style-gold {
+  background: linear-gradient(160deg, #fffaf0 0%, #fef3e2 45%, #fde8d0 100%);
+}
+
+#loginPage.login-style-gold .login-bg-shape { display: none; }
+
+#loginPage.login-style-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(180,83,9,0.07) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+/* 暖色辉光装饰，替代分屏风格默认的蓝紫色装饰形状 */
+#loginPage.login-style-gold::after {
+  content: '';
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  bottom: -180px;
+  left: -140px;
+  background: radial-gradient(circle, rgba(245,158,11,0.16) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 单卡片、纵向排列：品牌信息从"左侧竖版面板"改为"顶部横幅"，表单在下方，
+   这是和前三种风格（分屏两栏 / 居中单卡 / 暗色单卡）都不同的版式结构 */
+#loginPage.login-style-gold .login-container {
+  flex-direction: column;
+  width: 540px;
+  min-height: auto;
+  background: #fffdf9;
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(180,83,9,0.16), 0 8px 24px rgba(0,0,0,0.06);
+}
+
+#loginPage.login-style-gold .login-left {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 34px;
+  background: linear-gradient(120deg, #92400e 0%, #d97706 55%, #f59e0b 100%);
+}
+
+#loginPage.login-style-gold .login-left::before { display: none; }
+
+#loginPage.login-style-gold .login-left::after {
+  width: 220px;
+  height: 220px;
+  top: -60%;
+  right: -8%;
+  bottom: auto;
+  background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%);
+}
+
+#loginPage.login-style-gold .login-brand { margin-bottom: 0; }
+#loginPage.login-style-gold .login-features { display: none; }
+
+#loginPage.login-style-gold .login-left-footer { margin-top: 0; flex-shrink: 0; }
+
+#loginPage.login-style-gold .login-stats {
+  padding: 10px 16px;
+  gap: 10px;
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.2);
+}
+
+#loginPage.login-style-gold .ls-num { color: #fef3c7; font-size: 15px; }
+#loginPage.login-style-gold .ls-label { color: rgba(255,255,255,0.65); }
+#loginPage.login-style-gold .login-stat-divider { background: rgba(255,255,255,0.2); }
+
+#loginPage.login-style-gold .login-right {
+  width: 100%;
+  padding: 36px 40px 42px;
+}
+
+#loginPage.login-style-gold .login-form-title { color: #78350f; }
+#loginPage.login-style-gold .login-form-subtitle { color: #b45309; }
+
+#loginPage.login-style-gold .input-wrap input:focus {
+  border-color: #d97706;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(217,119,6,0.14);
+}
+
+#loginPage.login-style-gold .remember-me input { accent-color: #d97706; }
+#loginPage.login-style-gold .forgot-pwd { color: #d97706; }
+
+#loginPage.login-style-gold .login-btn {
+  background: linear-gradient(95deg, #b45309 0%, #f59e0b 100%);
+  box-shadow: 0 4px 14px rgba(217,119,6,0.32);
+}
+
+#loginPage.login-style-gold .login-btn:hover {
+  background: linear-gradient(95deg, #92400e 0%, #d97706 100%);
+  box-shadow: 0 8px 28px rgba(217,119,6,0.45);
+}
+
 /* =====================================================================
    欢迎页（开机动画页）色系联动：与登录页使用同一个 login-style-* class
   （由 applyLoginStyle() 同时设置在 #welcomePage 和 #loginPage 上），
@@ -1062,6 +1166,49 @@
 }
 
 #welcomePage.login-style-dark .progress-fill::after { background: #e2e8f0; box-shadow: 0 0 10px #e2e8f0; }
+
+/* ---- 暖金（配合"典雅通栏"风格） ---- */
+#welcomePage.login-style-gold { background: linear-gradient(135deg, #2d1a05 0%, #3d2306 45%, #331d05 100%); }
+
+#welcomePage.login-style-gold .orb1 { background: radial-gradient(circle, #f59e0b 0%, transparent 70%); }
+#welcomePage.login-style-gold .orb2 { background: radial-gradient(circle, #d97706 0%, transparent 70%); }
+#welcomePage.login-style-gold .orb3 { background: radial-gradient(circle, #fbbf24 0%, transparent 70%); }
+
+#welcomePage.login-style-gold .particle {
+  background: rgba(245,158,11, var(--o));
+  box-shadow: 0 0 calc(var(--s) * 2) rgba(245,158,11, calc(var(--o) * 0.6));
+}
+
+#welcomePage.login-style-gold::before {
+  background-image:
+    linear-gradient(rgba(245,158,11,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,158,11,0.06) 1px, transparent 1px);
+}
+
+#welcomePage.login-style-gold .ring-1 { border-top-color: rgba(245,158,11,0.6); border-right-color: rgba(217,119,6,0.3); }
+#welcomePage.login-style-gold .ring-2 { border-bottom-color: rgba(251,191,36,0.4); border-left-color: rgba(245,158,11,0.2); }
+#welcomePage.login-style-gold .ring-3 { border-top-color: rgba(217,119,6,0.2); border-right-color: rgba(251,191,36,0.15); }
+
+#welcomePage.login-style-gold .logo-glow {
+  background: radial-gradient(ellipse, rgba(245,158,11,0.35) 0%, transparent 70%);
+}
+
+#welcomePage.login-style-gold .logo-icon-img {
+  filter:
+    drop-shadow(0 10px 24px rgba(0,0,0,0.45))
+    drop-shadow(0 4px 8px rgba(0,0,0,0.3))
+    drop-shadow(0 0 40px rgba(245,158,11,0.5))
+    drop-shadow(0 0 80px rgba(245,158,11,0.2));
+}
+
+#welcomePage.login-style-gold .title-char { text-shadow: 0 0 40px rgba(245,158,11,0.7); }
+
+#welcomePage.login-style-gold .progress-fill {
+  background: linear-gradient(90deg, #b45309, #f59e0b, #fbbf24);
+  box-shadow: 0 0 14px rgba(245,158,11,0.8), 0 0 4px rgba(217,119,6,0.6);
+}
+
+#welcomePage.login-style-gold .progress-fill::after { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
 
 /* ===== 授权到期拦截页 ===== */
 .license-block-page {
