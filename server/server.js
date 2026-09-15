@@ -5,6 +5,7 @@
 //   DB.set(key, val)   <-> PUT  /api/:accountId/:collection
 //   账套整体拉取/写入   <-> GET/PUT /api/:accountId/_all
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
@@ -17,6 +18,7 @@ const upgrade = require('./upgrade');
 
 const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const INSTALL_ROOT = path.join(__dirname, '..'); // TimMiniERP.html 所在的安装目录根
 
 const app = express();
 app.use(express.json({ limit: '15mb' }));
@@ -325,6 +327,17 @@ app.post('/api/session/release', (req, res) => {
   if (sessions) sessions.delete(sessionId);
   res.json({ ok: true });
 });
+
+// ===== 前端静态文件（可选：安装包版"一键部署"用，让前后端跑在同一个端口上，
+// 不用再单独起 static-server.js）=====
+// 只显式暴露这几个前端用得到的目录/文件，绝不能整个安装目录根直接 express.static，
+// 否则 server/.env、server/data/*.db 这些敏感文件也会被当成静态资源直接下载到——
+// 这几项跟 tools/build-upgrade-package.js 里 WEB_ENTRIES 的范围保持一致。
+['css', 'js', 'docs'].forEach(dir => {
+  app.use(`/${dir}`, express.static(path.join(INSTALL_ROOT, dir)));
+});
+app.get('/LOGO.svg', (req, res) => res.sendFile(path.join(INSTALL_ROOT, 'LOGO.svg')));
+app.get(['/', '/TimMiniERP.html'], (req, res) => res.sendFile(path.join(INSTALL_ROOT, 'TimMiniERP.html')));
 
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));
 

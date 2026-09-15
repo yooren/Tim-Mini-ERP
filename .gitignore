@@ -4,3 +4,6 @@ tools/
 
 # 开发记录：内部追溯用，不对外同步（不进公开的 GitHub 仓库）
 docs/开发记录.md
+
+# 安装包打包工具：内部专用，含便携版 Node.js/MySQL 等大体积二进制，不进版本库
+installer/
