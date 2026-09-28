@@ -358,6 +358,11 @@ function openLicensePanel() {
     <div style="margin-bottom:16px;padding:10px 14px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-muted)">
       联系方式 — 微信：<strong>${LicenseGate.CONTACT.wechat}</strong> ｜ 邮箱：<strong>${LicenseGate.CONTACT.email}</strong>
     </div>
+    <div style="margin-bottom:16px;padding:10px 14px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span>本机识别码 — <strong style="font-family:monospace;color:var(--text)">${LicenseGate.getDeviceId()}</strong></span>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="copyDeviceId()">📋 复制</button>
+      <span style="width:100%;font-size:11px">申请机器绑定的授权码时，把这个识别码发给我们</span>
+    </div>
     <div class="form-item">
       <label>激活新授权码</label>
       <textarea id="licPanelInput" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:12.5px;box-sizing:border-box" placeholder="粘贴授权码..."></textarea>
@@ -407,7 +412,23 @@ function showLicenseBlock() {
   }
   document.getElementById('licContactWechat').textContent = LicenseGate.CONTACT.wechat;
   document.getElementById('licContactEmail').textContent = LicenseGate.CONTACT.email;
+  document.getElementById('licDeviceId').textContent = LicenseGate.getDeviceId();
   document.getElementById('licenseBlockPage').classList.remove('hidden');
+}
+
+// 复制"本机识别码"到剪贴板，供客户发给我们生成机器绑定的授权码；
+// 到期拦截页和授权管理面板共用这一个函数
+function copyDeviceId() {
+  const id = LicenseGate.getDeviceId();
+  const ta = document.createElement('textarea');
+  ta.value = id;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  toast(`本机识别码已复制：${id}`, 'success');
 }
 
 function activateLicenseFromBlock() {

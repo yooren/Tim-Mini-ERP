@@ -25,6 +25,12 @@
 //      只有连接了后端数据库服务（多端共享模式）时才能统计"同一账套同时在线人数"，
 //      由 js/app.js 的 SessionGuard 通过心跳向 server/server.js 上报/校验，
 //      纯本地单机模式没有中心节点可统计，不受此项限制。
+//   m  绑定的机器识别码（可选）。留空 = 不绑定机器，授权码可在任意设备使用；
+//      填了则激活/校验时必须和 getDeviceId() 算出来的本机识别码一致，否则拒绝，
+//      用于"一个授权码只给客户买单的那台电脑用"这种场景。机器识别码不是真正的
+//      硬件指纹（浏览器环境拿不到），是首次运行时随机生成、存在 localStorage 里
+//      的一个设备标识，清浏览器数据/换浏览器会导致重新生成，和整套授权系统
+//      "软性防误用，不是密码学级别防破解"的定位一致。
 //
 // 与 tools/授权码生成工具.html 中的算法和密钥必须保持完全一致。
 
@@ -34,8 +40,33 @@ const LicenseGate = {
   _STORAGE_KEY: 'wms_license',
   _TRIAL_START_KEY: 'wms_trialStartDate',
   _TRIAL_DAYS: 90,
+  _DEVICE_ID_KEY: 'wms_deviceId',
 
   CONTACT: { wechat: 'yoyouren', email: '360479727@qq.com' },
+
+  // 本机识别码：首次调用时随机生成一个设备标识并永久存进 localStorage，之后
+  // 每次都读同一个值。发给客户用来在生成授权码时"绑定机器"；客户在授权面板/
+  // 到期拦截页都能看到并复制这个值发给我们。
+  getDeviceId() {
+    let id = localStorage.getItem(this._DEVICE_ID_KEY);
+    if (!id) {
+      id = this._genDeviceId();
+      localStorage.setItem(this._DEVICE_ID_KEY, id);
+    }
+    return id;
+  },
+
+  _genDeviceId() {
+    const bytes = new Uint8Array(8);
+    // getRandomValues 不像 crypto.subtle 那样要求安全上下文，file:// 下也能用
+    if (window.crypto && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    return 'TM-' + hex;
+  },
 
   // 简单的带密钥哈希（cyrb128 变体），不依赖 Web Crypto API，
   // 保证在 file:// 协议下双击打开也能正常工作（crypto.subtle 在部分环境下受安全上下文限制）
@@ -98,10 +129,17 @@ const LicenseGate = {
     return { valid: true, payload };
   },
 
-  // 校验授权码签名是否有效、是否在有效期内，返回 { valid, expired, payload, error }
+  // 校验授权码签名是否有效、是否在有效期内、（如果绑定了机器）是否是本机，
+  // 返回 { valid, expired, payload, error }
   verify(code) {
     const parsed = this.parse(code);
     if (!parsed.valid) return { valid: false, expired: false, error: parsed.error };
+    if (parsed.payload.m && parsed.payload.m !== this.getDeviceId()) {
+      return {
+        valid: false, expired: false, payload: parsed.payload, mismatched: true,
+        error: `此授权码绑定的机器识别码与本机不符，请联系提供方核实（本机识别码：${this.getDeviceId()}）`
+      };
+    }
     const today = this._localDateStr();
     const expired = parsed.payload.e < today;
     return { valid: !expired, expired, payload: parsed.payload };
